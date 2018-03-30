@@ -6,12 +6,12 @@ export default {
       icon: 'icon-speedometer',
       badge: {
         variant: 'primary',
-        text: 'NEW'
+        text: 'Satus'
       }
     },
     {
       title: true,
-      name: 'Theme',
+      name: 'User',
       class: '',
       wrapper: {
         element: '',
@@ -19,240 +19,85 @@ export default {
       }
     },
     {
-      name: 'Colors',
-      url: '/theme/colors',
-      icon: 'icon-drop'
-    },
-    {
-      name: 'Typography',
-      url: '/theme/typography',
-      icon: 'icon-pencil'
-    },
-    {
-      title: true,
-      name: 'Components',
-      class: '',
-      wrapper: {
-        element: '',
-        attributes: {}
-      }
-    },
-    {
-      name: 'Base',
-      url: '/base',
-      icon: 'icon-puzzle',
-      children: [
-        {
-          name: 'Breadcrumbs',
-          url: '/base/breadcrumbs',
-          icon: 'icon-puzzle'
-        },
-        {
-          name: 'Cards',
-          url: '/base/cards',
-          icon: 'icon-puzzle'
-        },
-        {
-          name: 'Carousels',
-          url: '/base/carousels',
-          icon: 'icon-puzzle'
-        },
-        {
-          name: 'Collapses',
-          url: '/base/collapses',
-          icon: 'icon-puzzle'
-        },
-        {
-          name: 'Forms',
-          url: '/base/forms',
-          icon: 'icon-puzzle'
-        },
-        {
-          name: 'Jumbotrons',
-          url: '/base/jumbotrons',
-          icon: 'icon-puzzle'
-        },
-        {
-          name: 'List Groups',
-          url: '/base/list-groups',
-          icon: 'icon-puzzle'
-        },
-        {
-          name: 'Navs',
-          url: '/base/navs',
-          icon: 'icon-puzzle'
-        },
-        {
-          name: 'Paginations',
-          url: '/base/paginations',
-          icon: 'icon-puzzle'
-        },
-        {
-          name: 'Popovers',
-          url: '/base/popovers',
-          icon: 'icon-puzzle'
-        },
-        {
-          name: 'Progress Bars',
-          url: '/base/progress-bars',
-          icon: 'icon-puzzle'
-        },
-        {
-          name: 'Switches',
-          url: '/base/switches',
-          icon: 'icon-puzzle'
-        },
-        {
-          name: 'Tables',
-          url: '/base/tables',
-          icon: 'icon-puzzle'
-        },
-        {
-          name: 'Tooltips',
-          url: '/base/tooltips',
-          icon: 'icon-puzzle'
-        }
-      ]
-    },
-    {
-      name: 'Buttons',
-      url: '/buttons',
-      icon: 'icon-cursor',
-      children: [
-        {
-          name: 'Standard Buttons',
-          url: '/buttons/standard-buttons',
-          icon: 'icon-cursor'
-        },
-        {
-          name: 'Button Groups',
-          url: '/buttons/button-groups',
-          icon: 'icon-cursor'
-        },
-        {
-          name: 'Dropdowns',
-          url: '/buttons/dropdowns',
-          icon: 'icon-cursor'
-        },
-        {
-          name: 'Social Buttons',
-          url: '/buttons/social-buttons',
-          icon: 'icon-cursor'
-        }
-      ]
-    },
-    {
-      name: 'Icons',
-      url: '/icons',
+      name: 'User Manager',
+      url: '/user',
       icon: 'icon-star',
       children: [
         {
-          name: 'Flags',
-          url: '/icons/flags',
-          icon: 'icon-star',
-          badge: {
-            variant: 'success',
-            text: 'NEW'
-          }
+          name: 'User Table',
+          url: '/user/usertable',
+          icon: 'icon-user'
         },
         {
-          name: 'Font Awesome',
-          url: '/icons/font-awesome',
-          icon: 'icon-star',
-          badge: {
-            variant: 'secondary',
-            text: '4.7'
-          }
-        },
-        {
-          name: 'Simple Line Icons',
-          url: '/icons/simple-line-icons',
-          icon: 'icon-star'
+          name: 'Add User',
+          url: '/user/addUser',
+          icon: 'icon-note'
         }
       ]
     },
     {
-      name: 'Charts',
-      url: '/charts',
-      icon: 'icon-pie-chart'
+      title: true,
+      name: 'Product'
     },
     {
-      name: 'Notifications',
-      url: '/notifications',
-      icon: 'icon-bell',
+      name: 'Product',
+      url: '/product',
+      icon: 'icon-basket-loaded',
       children: [
         {
-          name: 'Alerts',
-          url: '/notifications/alerts',
-          icon: 'icon-bell'
+          name: 'Product Table',
+          url: '/product/table',
+          icon: 'icon-basket'
         },
         {
-          name: 'Badges',
-          url: '/notifications/badges',
-          icon: 'icon-bell'
+          name: 'Add Product',
+          url: '/product/add',
+          icon: 'icon-star'
         },
         {
-          name: 'Modals',
-          url: '/notifications/modals',
-          icon: 'icon-bell'
+          name: 'Compare Price',
+          url: '/product/compare',
+          icon: 'icon-shop'
         }
+        // {
+        //   name: 'Error 500',
+        //   url: '/pages/500',
+        //   icon: 'icon-star'
+        // }
       ]
     },
     {
-      name: 'Widgets',
-      url: '/widgets',
-      icon: 'icon-calculator',
+      name: 'Company',
+      url: '/company',
+      icon: 'icon-speedometer',
       badge: {
-        variant: 'primary',
-        text: 'NEW'
+        variant: 'primary'
       }
     },
     {
-      divider: true
+      name: 'Category',
+      url: '/category',
+      icon: 'icon-speedometer',
+      badge: {
+        variant: 'primary'
+      }
     },
     {
-      title: true,
-      name: 'Extras'
-    },
-    {
-      name: 'Pages',
-      url: '/pages',
-      icon: 'icon-star',
+      name: 'City & Store',
+      url: '/price',
+      icon: 'icon-basket-loaded',
       children: [
         {
-          name: 'Login',
-          url: '/pages/login',
-          icon: 'icon-star'
+          name: 'City',
+          url: '/city',
+          icon: 'icon-basket'
         },
         {
-          name: 'Register',
-          url: '/pages/register',
-          icon: 'icon-star'
-        },
-        {
-          name: 'Error 404',
-          url: '/pages/404',
-          icon: 'icon-star'
-        },
-        {
-          name: 'Error 500',
-          url: '/pages/500',
+          name: 'Store',
+          url: '/store',
           icon: 'icon-star'
         }
       ]
-    },
-    {
-      name: 'Download CoreUI',
-      url: 'http://coreui.io/vue/',
-      icon: 'icon-cloud-download',
-      class: 'mt-auto',
-      variant: 'success'
-    },
-    {
-      name: 'Try CoreUI PRO',
-      url: 'http://coreui.io/pro/vue/',
-      icon: 'icon-layers',
-      variant: 'danger'
     }
   ]
 }

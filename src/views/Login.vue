@@ -8,17 +8,25 @@
               <b-card-body>
                 <h1>FirseBase Admin</h1>
                 <p class="text-muted">Sign In to your account</p>
+                 <b-alert variant="warning"
+                     dismissible
+                     :max="10"
+                     :value="0"
+                     :show="this.$store.getters.loading"
+                     @dismissed="showDismissibleAlert = false">
+                  {{this.$store.getters.error?this.$store.getters.error.message:''}}
+                </b-alert>
                 <b-input-group class="mb-3">
                   <b-input-group-prepend><b-input-group-text><i class="icon-user"></i></b-input-group-text></b-input-group-prepend>
-                  <input type="text" class="form-control" placeholder="Username">
+                  <input type="text" v-model="loginForm.email" class="form-control" placeholder="Username">
                 </b-input-group>
                 <b-input-group class="mb-4">
                   <b-input-group-prepend><b-input-group-text><i class="icon-lock"></i></b-input-group-text></b-input-group-prepend>
-                  <input type="password" class="form-control" placeholder="Password">
+                  <input type="password" v-model="loginForm.password" class="form-control" placeholder="Password">
                 </b-input-group>
                 <b-row>
                   <b-col cols="6">
-                    <b-button variant="primary" class="px-4">Login</b-button>
+                    <b-button variant="primary" v-on:click="onSubmit" class="px-4">Login</b-button>
                   </b-col>
                 </b-row>
               </b-card-body>
@@ -34,6 +42,7 @@
 export default {
   data () {
     return {
+      showDismissibleAlert: this.$store.getters.loading,
       loginForm: {
         email: '',
         password: ''
@@ -41,10 +50,8 @@ export default {
     }
   },
   methods: {
-    signIn: () => {
-      let email = this.loginForm.email
-      let password = this.loginForm.password
-      this.$store.dispatch('signUserIn', {email: email, password: password})
+    onSubmit () {
+      this.$store.dispatch('signUserIn', this.loginForm)
     }
   }
 }
