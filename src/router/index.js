@@ -14,6 +14,8 @@ import Category from '@/views/Category'
 import City from '@/views/City'
 import Store from '@/views/Store'
 import Compare from '@/views/Compare'
+import Measurement from '@/views/Measurement'
+import Package from '@/views/Package'
 
 // Views - Pages
 import Product from '@/views/Product'
@@ -40,9 +42,19 @@ export default new Router({
           component: Company
         },
         {
+          path: 'measurement',
+          name: 'measurement',
+          component: Measurement
+        },
+        {
           path: 'dashboard',
           name: 'Dashboard',
           component: Dashboard
+        },
+        {
+          path: 'package',
+          name: 'package',
+          component: Package
         },
         {
           path: 'city',

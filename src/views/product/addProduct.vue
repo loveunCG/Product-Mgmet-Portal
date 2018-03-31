@@ -44,10 +44,7 @@
             <b-col sm="4">
               <b-form-group>
                 <label for="unit">Product unit</label>
-                <b-form-input type="text"
-                id="unit"
-                v-model="addForm.product_unit"
-                placeholder="Enter your unit"></b-form-input>
+                <b-form-select id="product_category" v-model="addForm.product_unit" :options="unit" size="md" />
               </b-form-group>
             </b-col>
             <b-col sm="4">
@@ -69,6 +66,7 @@
               :options="category"
               size="md" />
             </b-col>
+
           </b-row>
           <b-row>
             <b-col sm="4">
@@ -76,6 +74,14 @@
                <label for="product_category">company</label>
               <b-form-select id="product_category" v-model="addForm.company" :options="company" size="md" />
               </b-form-group>
+            </b-col>
+            <b-col sm="4">
+              <label for="product_category">product package</label>
+              <b-form-select
+              id="product_category"
+              v-model="addForm.product_package"
+              :options="package"
+              size="md" />
             </b-col>
             <b-col sm="4">
               <b-form-group
@@ -94,8 +100,7 @@
             <b-col sm="8">
               <b-list-group >
                 <b-list-group-item
-                v-for="(rprice, index) in price_data"
-                >
+                v-for="(rprice, index) in price_data">
                   Price value: {{rprice.price}}&nbsp;&nbsp;
                   City: {{rprice.city.city_name}}&nbsp;&nbsp;
                   Store: {{rprice.store.store_name}}&nbsp;&nbsp;
@@ -103,7 +108,6 @@
                  variant="danger"
                  v-on:click="onDeleteModal(index)"
                  class="pull-right"><i class="fa fa-trash"></i>&nbsp;Delete</b-button>
-
                 </b-list-group-item>
               </b-list-group>
             </b-col>
@@ -167,6 +171,7 @@ export default {
         product_unit: '',
         product_category: {},
         product_price: [],
+        product_package: {},
         items_of_box: '',
         is_active: '',
         _uid: '',
@@ -175,6 +180,8 @@ export default {
       isSubmit: false,
       city: [],
       price_data: [],
+      unit: [],
+      package: [],
       price: {
         price: '',
         store: {},
@@ -286,6 +293,34 @@ export default {
         return []
       })
     },
+    getpackage () {
+      firebase.database().ref('/packages/').once('value').then((snapshot) => {
+        var allusers = []
+        for (const key in snapshot.val()) {
+          var value = snapshot.val()[key]
+          value._uid = key
+          allusers.push({ value, text: value.package_name })
+        }
+        this.package = allusers
+      }).catch(err => {
+        console.log(err)
+        return []
+      })
+    },
+    getunit () {
+      firebase.database().ref('/units/').once('value').then((snapshot) => {
+        var allusers = []
+        for (const key in snapshot.val()) {
+          var value = snapshot.val()[key]
+          value._uid = key
+          allusers.push({ value, text: value.unit_name })
+        }
+        this.unit = allusers
+      }).catch(err => {
+        console.log(err)
+        return []
+      })
+    },
     addPriceSubmit () {
       if (this.price.price) {
         this.price_data.push(this.price)
@@ -302,6 +337,8 @@ export default {
     this.getcompany()
     this.getcategory()
     this.getstore()
+    this.getunit()
+    this.getpackage()
   }
 }
 </script>

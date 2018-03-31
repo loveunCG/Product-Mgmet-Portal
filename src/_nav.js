@@ -53,12 +53,12 @@ export default {
           name: 'Add Product',
           url: '/product/add',
           icon: 'icon-star'
-        },
-        {
-          name: 'Compare Price',
-          url: '/product/compare',
-          icon: 'icon-shop'
         }
+        // {
+        //   name: 'Compare Price',
+        //   url: '/product/compare',
+        //   icon: 'icon-shop'
+        // }
         // {
         //   name: 'Error 500',
         //   url: '/pages/500',
@@ -75,18 +75,15 @@ export default {
       }
     },
     {
-      name: 'Category',
-      url: '/category',
-      icon: 'icon-speedometer',
-      badge: {
-        variant: 'primary'
-      }
-    },
-    {
       name: 'City & Store',
       url: '/price',
       icon: 'icon-basket-loaded',
       children: [
+        {
+          name: 'Category',
+          url: '/category',
+          icon: 'icon-basket'
+        },
         {
           name: 'City',
           url: '/city',
@@ -95,6 +92,16 @@ export default {
         {
           name: 'Store',
           url: '/store',
+          icon: 'icon-star'
+        },
+        {
+          name: 'Package',
+          url: '/package',
+          icon: 'icon-star'
+        },
+        {
+          name: 'measurement',
+          url: '/measurement',
           icon: 'icon-star'
         }
       ]

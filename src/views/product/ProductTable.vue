@@ -62,10 +62,7 @@
             <b-col sm="4">
               <b-form-group>
                 <label for="unit">Product unit</label>
-                <b-form-input type="text"
-                id="unit"
-                v-model="editForm.product_unit"
-                placeholder="Enter your unit"></b-form-input>
+                <b-form-select id="product_category" v-model="editForm.product_unit" :options="unit" size="md" />
               </b-form-group>
             </b-col>
             <b-col sm="4">
@@ -101,6 +98,14 @@
                 label-for="fileInputMulti">
                    <b-form-file v-model="editForm.photo" placeholder="Choose a file..."></b-form-file>
               </b-form-group>
+            </b-col>
+            <b-col sm="4">
+              <label for="product_category">product package</label>
+              <b-form-select
+              id="product_category"
+              v-model="editForm.product_package"
+              :options="package"
+              size="md" />
             </b-col>
           </b-row>
           <b-row>
@@ -220,6 +225,7 @@
         view_price_data: [],
         editForm: {
           product_name: '',
+          product_package: {},
           product_size: '',
           barcode: '',
           photo: [],
@@ -253,6 +259,8 @@
           city: {}
         },
         store: [],
+        unit: [],
+        package: [],
         company: [],
         delete_uid: '',
         isAddPriceModal: false,
@@ -263,6 +271,7 @@
         fields: [
           {key: 'product_name', text: 'Product Name'},
           {key: 'barcode'},
+          {key: 'product_package'},
           {key: 'product_size', text: 'Product Size'},
           {key: 'items_of_box', text: 'Item Number'},
           {key: 'created_at', text: 'Created Time'},
@@ -317,6 +326,8 @@
         this.getcompany()
         this.getcategory()
         this.getstore()
+        this.getunit()
+        this.getpackage()
         firebase.database().ref('/products/' + uid).once('value').then((snapshot) => {
           this.editForm = snapshot.val()
           this.editForm._uid = uid
@@ -345,16 +356,6 @@
       },
       reset () {
 
-      },
-      isSubmit () {
-        for (const key in this.addForm) {
-          if (this.addForm[key] === '') {
-            return true
-          } else {
-            return true
-          }
-        }
-        return true
       },
       onDeleteModal (index) {
         this.price_data.splice(index, 1)
@@ -439,7 +440,9 @@
             user._uid = key
             user.action = key
             user.product_category = user.product_category.category_name
+            user.product_unit = user.product_unit.unit_name
             user.company = user.company.company_name
+            user.product_package = user.product_package.package_name
             user.action = key
             allusers.push(user)
           }
@@ -454,6 +457,34 @@
       },
       onAddModal () {
         this.$router.push('/product/add')
+      },
+      getpackage () {
+        firebase.database().ref('/packages/').once('value').then((snapshot) => {
+          var allusers = []
+          for (const key in snapshot.val()) {
+            var value = snapshot.val()[key]
+            value._uid = key
+            allusers.push({ value, text: value.package_name })
+          }
+          this.package = allusers
+        }).catch(err => {
+          console.log(err)
+          return []
+        })
+      },
+      getunit () {
+        firebase.database().ref('/units/').once('value').then((snapshot) => {
+          var allusers = []
+          for (const key in snapshot.val()) {
+            var value = snapshot.val()[key]
+            value._uid = key
+            allusers.push({ value, text: value.unit_name })
+          }
+          this.unit = allusers
+        }).catch(err => {
+          console.log(err)
+          return []
+        })
       }
     },
     mounted () {
