@@ -3,10 +3,10 @@ export default {
     {
       name: 'Dashboard',
       url: '/dashboard',
-      icon: 'icon-speedometer',
+      icon: 'fa fa-apple',
       badge: {
         variant: 'primary',
-        text: 'Satus'
+        text: 'Status'
       }
     },
     {
@@ -21,17 +21,17 @@ export default {
     {
       name: 'User Manager',
       url: '/user',
-      icon: 'icon-star',
+      icon: 'fa fa-users',
       children: [
         {
           name: 'User Table',
           url: '/user/usertable',
-          icon: 'icon-user'
+          icon: 'fa fa-user'
         },
         {
           name: 'Add User',
           url: '/user/addUser',
-          icon: 'icon-note'
+          icon: 'fa fa-user-plus'
         }
       ]
     },
@@ -42,23 +42,28 @@ export default {
     {
       name: 'Product',
       url: '/product',
-      icon: 'icon-basket-loaded',
+      icon: 'fa fa-shopping-basket',
       children: [
         {
           name: 'Product Table',
           url: '/product/table',
-          icon: 'icon-basket'
+          icon: 'fa fa-shopping-cart'
         },
         {
           name: 'Add Product',
           url: '/product/add',
-          icon: 'icon-star'
+          icon: 'fa fa-shopping-bag'
+        },
+        {
+          name: 'Compare Price',
+          url: '/product/compare',
+          icon: 'fa fa-scribd'
+        },
+        {
+          name: 'Wish List',
+          url: '/product/wishlist',
+          icon: 'fa fa-address-card'
         }
-        // {
-        //   name: 'Compare Price',
-        //   url: '/product/compare',
-        //   icon: 'icon-shop'
-        // }
         // {
         //   name: 'Error 500',
         //   url: '/pages/500',
@@ -69,7 +74,7 @@ export default {
     {
       name: 'Company',
       url: '/company',
-      icon: 'icon-speedometer',
+      icon: 'fa fa-university',
       badge: {
         variant: 'primary'
       }
@@ -77,32 +82,32 @@ export default {
     {
       name: 'City & Store',
       url: '/price',
-      icon: 'icon-basket-loaded',
+      icon: 'fa fa-gears',
       children: [
         {
           name: 'Category',
           url: '/category',
-          icon: 'icon-basket'
+          icon: 'fa fa-cube'
         },
         {
           name: 'City',
           url: '/city',
-          icon: 'icon-basket'
+          icon: 'fa fa-archive'
         },
         {
           name: 'Store',
           url: '/store',
-          icon: 'icon-star'
+          icon: 'fa fa-microchip'
         },
         {
           name: 'Package',
           url: '/package',
-          icon: 'icon-star'
+          icon: 'fa fa-briefcase'
         },
         {
           name: 'measurement',
           url: '/measurement',
-          icon: 'icon-star'
+          icon: 'fa fa-opencart'
         }
       ]
     }

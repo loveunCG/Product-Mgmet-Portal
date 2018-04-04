@@ -173,8 +173,6 @@ export default {
         product_price: [],
         product_package: {},
         items_of_box: '',
-        is_active: '',
-        _uid: '',
         company: {}
       },
       isSubmit: false,
@@ -212,8 +210,20 @@ export default {
   },
   methods: {
     onSubmit () {
+      let isValidation = true
       if (this.addForm.barcode === '') {
         this.$msg('Please insert barcode!')
+        return
+      }
+      for (const key in this.addForm) {
+        if (this.addForm.hasOwnProperty(key)) {
+          if (this.addForm[key] === '' || this.addForm[key] === undefined || this.addForm[key] === []) {
+            isValidation = false
+          }
+        }
+      }
+      if (!isValidation) {
+        this.$msg('Please insert full data!')
         return
       }
       var ref = firebase.database().ref()
@@ -229,7 +239,7 @@ export default {
       this.price_data = []
     },
     reset () {
-
+      this.addForm = []
     },
     onDeleteModal (index) {
       this.price_data.splice(index, 1)
@@ -322,6 +332,11 @@ export default {
       })
     },
     addPriceSubmit () {
+      console.log('this is price_data', this.price_data)
+      console.log('this is added price data', this.price)
+      if (!this.price_data) {
+        this.price_data = []
+      }
       if (this.price.price) {
         this.price_data.push(this.price)
       } else {

@@ -16,7 +16,7 @@ import Store from '@/views/Store'
 import Compare from '@/views/Compare'
 import Measurement from '@/views/Measurement'
 import Package from '@/views/Package'
-
+import WishList from '@/views/WishList'
 // Views - Pages
 import Product from '@/views/Product'
 import LoginN from '@/views/Login'
@@ -108,6 +108,11 @@ export default new Router({
               path: 'compare',
               name: 'compare product',
               component: Compare
+            },
+            {
+              path: 'wishlist',
+              name: 'Wish List',
+              component: WishList
             },
             {
               path: 'add',

@@ -4,7 +4,7 @@
        Measurement List
     </div>
     <b-button variant="primary" class="add_button float-right" v-on:click="onAddModal"><i class="fa fa-plus"></i>&nbsp;Add</b-button>
-    <b-table :hover="hover" :striped="striped" :bordered="bordered" :small="small" :busy.sync="isBusy" :fixed="fixed" responsive="sm" :items="items" :fields="fields" :current-page="currentPage" :per-page="perPage">
+    <b-table :hover="hover" :striped="striped" :bordered="bordered" :small="small" :busy.sync="isBusy"  responsive="sm" :items="items" :fields="fields" :current-page="currentPage" :per-page="perPage">
 
       <template slot="action" slot-scope="data">
         <b-button variant="primary" v-on:click="onEditModel(data.item.action)"><i class="fa fa-edit"></i>&nbsp;Edit</b-button>
@@ -111,8 +111,8 @@
         addForm: {
           unit_name: '',
           unit_description: '',
-          _uid: '',
-          created_at: ''
+          _uid: ' ',
+          created_at: ' '
         },
         isaddmodal: false,
         active: [
@@ -159,6 +159,18 @@
         this.$msg('Edit units Successfuly!')
       },
       addSubmit () {
+        let isValidation = true
+        for (const key in this.addForm) {
+          if (this.addForm.hasOwnProperty(key)) {
+            if (this.addForm[key] === '' || this.addForm[key] === undefined || this.addForm[key] === []) {
+              isValidation = false
+            }
+          }
+        }
+        if (!isValidation) {
+          this.$msg('Please insert full data!')
+          return
+        }
         var ref = firebase.database().ref()
         var pushref = ref.child('units')
         this.addForm.created_at = moment().format('YYYY mm dd, h:mm:ss a')

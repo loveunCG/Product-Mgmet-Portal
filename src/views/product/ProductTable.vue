@@ -4,13 +4,14 @@
        Company Table
     </div>
     <b-button variant="primary" class="add_button float-right" v-on:click="onAddModal"><i class="fa fa-plus"></i>&nbsp;Add</b-button>
-    <b-table :hover="hover" :striped="striped" :bordered="bordered" :small="small" :busy.sync="isBusy" :fixed="fixed" responsive="sm" :items="items" :fields="fields" :current-page="currentPage" :per-page="perPage">
+    <b-table :hover="hover" :striped="striped" :bordered="bordered" :small="small" responsive="sm" :items="items" :fields="fields" :current-page="currentPage" :per-page="perPage">
       <template slot="status" slot-scope="data">
         <b-badge :variant="getBadge(data.item.status)">{{data.item.status}}</b-badge>
       </template>
       <template slot="action" slot-scope="data">
         <b-button variant="success" v-on:click="onEditModel(data.item.action)"><i class="fa fa-edit"></i>&nbsp;Edit</b-button>
         <b-button variant="danger" v-on:click="onDeleteOPenModal(data.item.action)"><i class="fa fa-trash"></i>&nbsp;Delete</b-button>
+        <b-button variant="danger" v-on:click="onAddlist(data.item.action)"><i class="fa fa-plus"></i>&nbsp;{{ data.item.hasOwnProperty('wishlist') ? 'Add List' : 'Add List'}}</b-button>
       </template>
       <template slot="product_price" slot-scope="data">
         <b-button variant="success" class="md-12" v-on:click="onViewModel(data.item.action)"><i class="fa fa-eye"></i>&nbsp;view</b-button>
@@ -117,8 +118,7 @@
             <b-col sm="8">
               <b-list-group >
                 <b-list-group-item
-                v-for="(rprice, index) in price_data"
-                >
+                v-for="(rprice, index) in price_data">
                   Price value: {{rprice.price}}&nbsp;&nbsp;
                   City: {{rprice.city.city_name}}&nbsp;&nbsp;
                   Store: {{rprice.store.store_name}}&nbsp;&nbsp;
@@ -177,6 +177,24 @@
     <b-modal title="Info" class="modal-info" v-model="isdeleteModal" @ok="deleteSubmit">
       are you sure delete this Product?
     </b-modal>
+    <b-modal title="Add Wish List" class="modal-info" v-model="isAddListModal" @ok="addWishList">
+      <b-col sm="12">
+         <b-form-group>
+            <label for="unit">Work List</label>
+            <b-form-select id="product_category" v-model="wishList_uid" :options="wishlists" size="md" />
+         </b-form-group>
+         <b-list-group>
+           <b-list-group-item
+                v-for="(rprice, index) in editForm.wishlist">
+                  Wish List: {{wishList_data[rprice].wash_name}}&nbsp;
+                 <b-button
+                 variant="danger"
+                 v-on:click="ondeleteWishList(index)"
+                 class="pull-right"><i class="fa fa-trash"></i></b-button>
+            </b-list-group-item>
+        </b-list-group>
+      </b-col>
+    </b-modal>
   </b-card>
 </template>
 <script>
@@ -186,8 +204,6 @@
    */
 
   import * as firebase from 'firebase'
-  import moment from 'moment'
-
   export default {
     name: 'c-table',
     props: {
@@ -221,8 +237,10 @@
         items: [],
         deleteModal: false,
         isviewModal: false,
-        deleteComapanyId: '',
+        wishList_uid: '',
+        product_uid: '',
         view_price_data: [],
+        isAddListModal: false,
         editForm: {
           product_name: '',
           product_package: {},
@@ -249,6 +267,7 @@
           _uid: '',
           company: {}
         },
+        wishlists: [],
         isdeleteModal: false,
         isSubmit: false,
         city: [],
@@ -281,8 +300,9 @@
           {key: 'product_price'},
           {key: 'action'}
         ],
+        wishList_data: [],
         currentPage: 1,
-        perPage: 5,
+        perPage: 10,
         totalRows: 0
       }
     },
@@ -292,6 +312,10 @@
           : status === '2' ? 'inactive'
             : status === 'active' ? 'primary'
               : status === 'inactive' ? 'danger' : 'inactive'
+      },
+      ondeleteWishList (index) {
+        this.editForm.wishlist.splice(index, 1)
+        console.log(index)
       },
       deleteSubmit () {
         var updates = {}
@@ -309,17 +333,49 @@
         this.myProvider()
         this.$msg('Edit Comapny Successfuly!')
       },
-      addSubmit () {
-        var ref = firebase.database().ref()
-        var pushref = ref.child('companys')
-        this.addForm.created_at = moment().format('YYYY mm dd, h:mm:ss a')
-        pushref.push(this.addForm)
-        this.isaddmodal = true
-        this.$msg('Add Comapny Successfuly!')
-        for (const key in this.addForm) {
-          this.addForm[key] = ''
+      addWishList () {
+        if (this.wishList_uid === '') {
+          this.$msg('Please Select Work list!')
+        } else {
+          firebase.database().ref('/products/' + this.product_uid).once('value').then((snapshot) => {
+            this.editForm._uid = this.product_uid
+            var updates = {}
+            for (const key in this.editForm.wishlist) {
+              if (this.editForm.wishlist.hasOwnProperty(key)) {
+                if (this.editForm.wishlist[key] === this.wishList_uid._uid) {
+                  this.$msg('Already Added Wish list!')
+                  return
+                }
+              }
+            }
+            var addwish = []
+            if (typeof this.editForm.wishlist === 'undefined') {
+              this.editForm.wishlist = []
+            }
+            addwish[this.wishList_uid._uid] = this.wishList_uid._uid
+            try {
+              this.editForm.wishlist.push(addwish[this.wishList_uid._uid])
+            } catch (error) {
+              console.log(error)
+              this.editForm.wishlist = []
+              this.editForm.wishlist.push(addwish[this.wishList_uid._uid])
+            }
+            updates['/products/' + this.product_uid] = this.editForm
+            firebase.database().ref().update(updates)
+            this.$msg('Successfuly Add list!')
+            this.myProvider()
+          })
         }
-        this.myProvider()
+      },
+      onAddlist (_uid) {
+        console.log(this.wishlists)
+        this.product_uid = _uid
+        firebase.database().ref('/products/' + _uid).once('value').then((snapshot) => {
+          this.editForm = snapshot.val()
+          this.editForm._uid = _uid
+          this.price_data = snapshot.val().product_price
+          this.isAddListModal = true
+        })
       },
       onEditModel (uid) {
         this.getcity()
@@ -340,22 +396,6 @@
           this.view_price_data = snapshot.val().product_price
           this.isviewModal = true
         })
-      },
-      onSubmit () {
-        var ref = firebase.database().ref()
-        var pushref = ref.child('products')
-        this.addForm.created_at = moment().format('YYYY mm dd, h:mm:ss a')
-        this.addForm.product_price = this.price_data
-        pushref.push(this.addForm)
-        this.isaddmodal = true
-        this.$msg('Add city Successfuly!')
-        for (const key in this.addForm) {
-          this.addForm[key] = ''
-        }
-        this.price_data = []
-      },
-      reset () {
-
       },
       onDeleteModal (index) {
         this.price_data.splice(index, 1)
@@ -424,6 +464,11 @@
         })
       },
       addPriceSubmit () {
+        console.log('this is price_data', this.price_data)
+        console.log('this is added price data', this.price)
+        if (!this.price_data || typeof this.price_data === 'undefined') {
+          this.price_data = []
+        }
         if (this.price.price) {
           this.price_data.push(this.price)
         } else {
@@ -431,6 +476,23 @@
         }
         this.iseditmodal = true
         this.price = {}
+      },
+      getwishList () {
+        firebase.database().ref('/wishlists/').once('value').then((snapshot) => {
+          console.log(snapshot.val())
+          this.wishList_data = snapshot.val()
+          var allusers = []
+          for (const key in snapshot.val()) {
+            var value = snapshot.val()[key]
+            value._uid = key
+            allusers.push({ value, text: value.wash_name })
+          }
+          this.wishlists = allusers
+          console.log(this.wishlists)
+        }).catch(err => {
+          console.log(err)
+          return []
+        })
       },
       myProvider () {
         firebase.database().ref('/products/').once('value').then((snapshot) => {
@@ -489,6 +551,7 @@
     },
     mounted () {
       this.myProvider()
+      this.getwishList()
     }
   }
 </script>
