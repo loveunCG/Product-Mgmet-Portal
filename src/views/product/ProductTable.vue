@@ -1,10 +1,74 @@
 <template>
+<div>
+  <b-card>
+
+    <div slot="header">
+      <strong>Product </strong> <small></small>
+    </div>
+    <b-row>
+      <b-col sm="3">
+        <b-form-group>
+          <label for="company">Barcode</label>
+          <b-form-input
+          type="text"
+          v-model="searchForm.barcode"
+          placeholder="Enter your Barcode"
+          />
+        </b-form-group>
+      </b-col>
+      <b-col sm="3">
+        <label for="product_category">product category</label>
+        <b-form-select
+        id="product_category"
+        v-model="searchForm.product_category"
+        :options="category"
+        size="md" />
+      </b-col>
+      <b-col sm="3" >
+        <b-form-group>
+          <label for="product_category">company</label>
+        <b-form-select id="product_category" v-model="searchForm.company" :options="company" size="md" />
+        </b-form-group>
+      </b-col>
+      <b-col sm="3">
+        <label for="product_category">product package</label>
+        <b-form-select
+        id="product_category"
+        v-model="searchForm.product_package"
+        :options="package"
+        size="md" />
+      </b-col>
+    </b-row>
+    <b-row>
+      <b-col sm="3" offset-sm="8">
+        <b-form-group>
+          <b-button variant="success" class="pull-left" v-on:click="search()"><i class="fa fa-search"></i>&nbsp;search</b-button>
+          <b-button variant="info" class="pull-right" v-on:click="clear()"><i class="fa fa-circle-thin"></i>&nbsp;clear</b-button>
+         </b-form-group>
+      </b-col>
+    </b-row>
+  </b-card>
   <b-card>
     <div slot="header">
        Company Table
     </div>
+    <b-col md="3" class="pull-right add_button">
+        <b-form-group horizontal class="mb-0">
+              <b-input-group>
+                <b-form-input v-model="filter" placeholder="Type to Search" />
+                <b-input-group-append>
+                  <b-btn :disabled="!filter" @click="filter = ''">Clear</b-btn>
+                </b-input-group-append>
+              </b-input-group>
+        </b-form-group>
+    </b-col>
     <b-button variant="primary" class="add_button float-right" v-on:click="onAddModal"><i class="fa fa-plus"></i>&nbsp;Add</b-button>
-    <b-table :hover="hover" :striped="striped" :bordered="bordered" :small="small" responsive="sm" :items="items" :fields="fields" :current-page="currentPage" :per-page="perPage">
+    <b-table :hover="hover" :striped="striped" :bordered="bordered" :small="small" responsive="sm"
+    :items="items"
+    :filter="filter"
+    :fields="fields"
+    :current-page="currentPage"
+    :per-page="perPage">
       <template slot="status" slot-scope="data">
         <b-badge :variant="getBadge(data.item.status)">{{data.item.status}}</b-badge>
       </template>
@@ -18,7 +82,14 @@
       </template>
     </b-table>
     <nav>
-      <b-pagination :total-rows="getRowCount(items)" :per-page="perPage" v-model="currentPage" prev-text="Prev" next-text="Next" hide-goto-end-buttons/>
+      <b-pagination
+      v-on:change="onchangePage"
+      :total-rows="getRowCount(items)"
+      :per-page="perPage"
+      v-model="currentPage"
+      prev-text="Prev"
+      next-text="Next"
+      hide-goto-end-buttons/>
     </nav>
 
     <b-modal title="Product Edit" class="modal-info" size="lg" v-model="iseditmodal" @ok="editSubmit" ok-variant="primary">
@@ -196,6 +267,9 @@
       </b-col>
     </b-modal>
   </b-card>
+</div>
+
+
 </template>
 <script>
   /**
@@ -241,6 +315,7 @@
         product_uid: '',
         view_price_data: [],
         isAddListModal: false,
+        lastuid: '',
         editForm: {
           product_name: '',
           product_package: {},
@@ -255,22 +330,17 @@
           _uid: '',
           company: {}
         },
-        addForm: {
-          product_name: '',
-          product_size: '',
-          photo: [],
-          product_unit: '',
+        searchForm: {
           product_category: {},
-          product_price: [],
-          items_of_box: '',
-          is_active: '',
-          _uid: '',
+          barcode: '',
+          product_package: {},
           company: {}
         },
         wishlists: [],
         isdeleteModal: false,
         isSubmit: false,
         city: [],
+        filter: null,
         price_data: [],
         price: {
           price: '',
@@ -301,6 +371,7 @@
           {key: 'action'}
         ],
         wishList_data: [],
+        loadcount: 1,
         currentPage: 1,
         perPage: 10,
         totalRows: 0
@@ -368,7 +439,6 @@
         }
       },
       onAddlist (_uid) {
-        console.log(this.wishlists)
         this.product_uid = _uid
         firebase.database().ref('/products/' + _uid).once('value').then((snapshot) => {
           this.editForm = snapshot.val()
@@ -495,8 +565,9 @@
         })
       },
       myProvider () {
-        firebase.database().ref('/products/').once('value').then((snapshot) => {
-          var allusers = []
+        var allusers = []
+        var lastuid = ''
+        firebase.database().ref('/products/').orderByKey().limitToFirst(100).once('value').then((snapshot) => {
           for (const key in snapshot.val()) {
             var user = snapshot.val()[key]
             user._uid = key
@@ -506,13 +577,78 @@
             user.company = user.company.company_name
             user.product_package = user.product_package.package_name
             user.action = key
+            lastuid = key
             allusers.push(user)
           }
           this.items = allusers
+          this.lastuid = lastuid
+          this.$store.dispatch('loadingData', lastuid)
         }).catch(err => {
           console.log(err)
           return []
         })
+      },
+      onchangePage (page) {
+        console.log('cuurent page', page, this.lastuid)
+        if (page === this.loadcount * 10) {
+          this.loadcount++
+          var allusers = this.items
+          var lastuid = ''
+          firebase.database().ref('/products/').orderByKey().startAt(this.lastuid).limitToFirst(100).once('value').then((snapshot) => {
+            for (const key in snapshot.val()) {
+              var user = snapshot.val()[key]
+              user._uid = key
+              user.action = key
+              user.product_category = user.product_category.category_name
+              user.product_unit = user.product_unit.unit_name
+              user.company = user.company.company_name
+              user.product_package = user.product_package.package_name
+              user.action = key
+              lastuid = key
+              allusers.push(user)
+            }
+            this.items = allusers
+            this.lastuid = lastuid
+            this.$store.dispatch('loadingData', lastuid)
+          }).catch(err => {
+            console.log(err)
+            return []
+          })
+        }
+      },
+      search () {
+        var items = this.items
+        if (items === []) {
+          this.myProvider()
+        }
+        var filterd = []
+        for (const key in items) {
+          if (this.searchForm.barcode !== '' && items[key].barcode !== this.searchForm.barcode) {
+            continue
+          }
+          if (typeof this.searchForm.product_category.category_name !== 'undefined' && items[key].product_category !== this.searchForm.product_category.category_name) {
+            console.log('this is')
+            continue
+          }
+          if (typeof this.searchForm.company.company_name !== 'undefined' && items[key].company !== this.searchForm.company.company_name) {
+            console.log('this is company')
+            continue
+          }
+          if (typeof this.searchForm.product_package.package_name !== 'undefined' && items[key].product_package !== this.searchForm.product_package.package_name) {
+            console.log('this is product_package')
+            continue
+          }
+          filterd.push(items[key])
+        }
+        console.log(filterd)
+        this.items = filterd
+      },
+      clear () {
+        for (const key in this.searchForm) {
+          this.searchForm[key] = ''
+        }
+        this.myProvider()
+        this.loadcount = 1
       },
       getRowCount (items) {
         return items.length
@@ -547,11 +683,50 @@
           console.log(err)
           return []
         })
+      },
+      loadData () {
+        setInterval(this.stepLoading, 5000)
+      },
+      stepLoading () {
+        var allusers = this.items
+        var lastuid = ''
+        firebase.database().ref('/products/').orderByKey().startAt(this.lastuid).limitToFirst(100).once('value').then((snapshot) => {
+          if (snapshot.val().length < 2) {
+            this.lastuid = this.lastuid
+            return
+          }
+          for (const key in snapshot.val()) {
+            var user = snapshot.val()[key]
+            user._uid = key
+            user.action = key
+            user.product_category = user.product_category.category_name
+            user.product_unit = user.product_unit.unit_name
+            user.company = user.company.company_name
+            user.product_package = user.product_package.package_name
+            user.action = key
+            lastuid = key
+            allusers.push(user)
+          }
+
+          this.items = allusers
+          this.search()
+          this.lastuid = lastuid
+          this.$store.dispatch('loadingData', lastuid)
+        }).catch(err => {
+          console.log(err)
+          return []
+        })
       }
     },
     mounted () {
       this.myProvider()
+      this.getcity()
+      this.getstore()
+      this.getcompany()
+      this.getpackage()
+      this.getcategory()
       this.getwishList()
+      this.loadData()
     }
   }
 </script>

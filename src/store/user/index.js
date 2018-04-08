@@ -3,7 +3,8 @@ import router from '../../router'
 
 export default {
   state: {
-    user: null
+    user: null,
+    product: []
   },
   mutations: {
     setUser (state, payload) {
@@ -11,10 +12,13 @@ export default {
       localStorage.setItem('user_token', payload)
       console.log(state.user)
     },
+    loadProduct (state, payload) {
+      state.product = payload
+      console.log('that is product', state.product)
+    },
     clearUser (state) {
       state.user = null
       localStorage.removeItem('user_token')
-      console.log(state.user, localStorage.getItem('user_token'))
     }
   },
   actions: {
@@ -169,6 +173,27 @@ export default {
         email: payload.email,
         photoUrl: payload.photoURL
       })
+    },
+    loadingData ({commit}, payload) {
+      // var allusers = []
+      // firebase.database().ref('/products/').once('value').then((snapshot) => {
+      //   for (const key in snapshot.val()) {
+      //     var user = snapshot.val()[key]
+      //     user._uid = key
+      //     user.action = key
+      //     user.product_category = user.product_category.category_name
+      //     user.product_unit = user.product_unit.unit_name
+      //     user.company = user.company.company_name
+      //     user.product_package = user.product_package.package_name
+      //     user.action = key
+      //     allusers.push(user)
+      //   }
+      //   commit('loadProduct', allusers)
+      //   this.items = allusers
+      // }).catch(err => {
+      //   console.log(err)
+      //   return []
+      // })
     },
     logout ({commit}) {
       firebase.auth().signOut()

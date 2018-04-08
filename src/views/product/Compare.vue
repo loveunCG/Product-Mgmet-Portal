@@ -44,7 +44,13 @@
     </b-table>
 
     <nav>
-      <b-pagination :total-rows="getRowCount(items)" :per-page="perPage" v-model="currentPage" prev-text="Prev" next-text="Next" hide-goto-end-buttons/>
+      <b-pagination
+      v-on:change="onchangePage"
+      :total-rows="getRowCount(items)"
+      :per-page="perPage"
+      v-model="currentPage"
+      prev-text="Prev"
+      next-text="Next" hide-goto-end-buttons/>
     </nav>
   </b-card>
 </template>
@@ -104,7 +110,10 @@
         fields: [],
         currentPage: 1,
         perPage: 10,
-        totalRows: 0
+        totalRows: 0,
+        wishlistuid: '',
+        pageLoadingCount: 1,
+        productLatestUid: ''
       }
     },
     methods: {
@@ -167,6 +176,7 @@
         })
       },
       onSelectList (param) {
+        this.wishlistuid = param
         this.searchByCity(param)
       },
       onSelectSearchBy (param) {
@@ -214,6 +224,12 @@
             allusers.push({ value: key, text: value.wash_name })
           }
           this.selectWishListOption = allusers
+          try {
+            this.selectWishList = allusers[0].value
+            this.wishlistuid = allusers[0].value
+          } catch (error) {
+            console.log(error)
+          }
         }).catch(err => {
           console.log(err)
           return []
@@ -241,8 +257,82 @@
         })
       },
       searchByCity (wishUid) {
-        firebase.database().ref('/products/').once('value').then((snapshot) => {
+        firebase.database().ref('/products/').orderByKey().limitToFirst(100).once('value').then((snapshot) => {
           var allusers = []
+          for (const key in snapshot.val()) {
+            this.productLatestUid = key
+            var isContinue = false
+            if (typeof wishUid !== 'undefined') {
+              if (!snapshot.val()[key].hasOwnProperty('wishlist')) {
+                continue
+              } else {
+                for (const wish in snapshot.val()[key].wishlist) {
+                  if (snapshot.val()[key].wishlist[wish] === wishUid) {
+                    isContinue = true
+                    continue
+                  }
+                }
+              }
+            } else {
+              isContinue = true
+            }
+            if (!isContinue) {
+              continue
+            }
+            var user = []
+            var cityCheapest = ''
+            var storeCheapest = ''
+            let maxPrice = 0
+            let maxPriceStore = 0
+            var product = snapshot.val()[key]
+            user['product_name'] = snapshot.val()[key].product_name
+            for (const city in this.city) {
+              for (const i in product.product_price) {
+                if (product.product_price.hasOwnProperty(i)) {
+                  if (product.product_price[i].city.city_name === this.city[city].city_name) {
+                    if (maxPrice < parseInt(product.product_price[i].price)) {
+                      maxPrice = product.product_price[i].price
+                      cityCheapest = this.city[city].city_name
+                    }
+                    user[this.city[city].city_name] = product.product_price[i].price
+                  }
+                }
+              }
+            }
+            for (const store in this.store) {
+              for (const i in product.product_price) {
+                if (product.product_price.hasOwnProperty(i)) {
+                  if (product.product_price[i].store.store_name === this.store[store].store_name) {
+                    if (maxPriceStore < parseInt(product.product_price[i].price)) {
+                      maxPriceStore = product.product_price[i].price
+                      storeCheapest = this.store[store].store_name
+                    }
+                    user[this.store[store].store_name] = product.product_price[i].price
+                  }
+                }
+              }
+            }
+            user['city_cheapest_location'] = cityCheapest
+            user['store_cheapest_location'] = storeCheapest
+            allusers.push(user)
+          }
+          // console.log(allusers)
+          this.items = allusers
+        }).catch(err => {
+          console.log(err)
+          return []
+        })
+      },
+      onchangePage (page) {
+        var allusers = this.items
+        console.log(this.wishlistuid, page, this.productLatestUid)
+        if (page !== this.pageLoadingCount * 10) {
+          return
+        }
+        this.pageLoadingCount++
+        console.log(this.pageLoadingCount)
+        var wishUid = this.wishlistuid
+        firebase.database().ref('/products/').orderByKey().startAt(this.productLatestUid).limitToFirst(100).once('value').then((snapshot) => {
           for (const key in snapshot.val()) {
             var isContinue = false
             if (typeof wishUid !== 'undefined') {
@@ -308,11 +398,86 @@
       },
       getRowCount (items) {
         return items.length
+      },
+      setepLoading () {
+        var allusers = this.items
+        var wishUid = this.wishlistuid
+        console.log('this is time reset')
+        firebase.database().ref('/products/').orderByKey().startAt(this.productLatestUid).limitToFirst(100).once('value').then((snapshot) => {
+          if (snapshot.val().length < 2) {
+            return
+          }
+          for (const key in snapshot.val()) {
+            var isContinue = false
+            if (typeof wishUid !== 'undefined') {
+              if (!snapshot.val()[key].hasOwnProperty('wishlist')) {
+                continue
+              } else {
+                for (const wish in snapshot.val()[key].wishlist) {
+                  if (snapshot.val()[key].wishlist[wish] === wishUid) {
+                    isContinue = true
+                    continue
+                  }
+                }
+              }
+            } else {
+              isContinue = true
+            }
+            if (!isContinue) {
+              continue
+            }
+            var user = []
+            var cityCheapest = ''
+            var storeCheapest = ''
+            let maxPrice = 0
+            let maxPriceStore = 0
+            var product = snapshot.val()[key]
+            user['product_name'] = snapshot.val()[key].product_name
+            for (const city in this.city) {
+              for (const i in product.product_price) {
+                if (product.product_price.hasOwnProperty(i)) {
+                  if (product.product_price[i].city.city_name === this.city[city].city_name) {
+                    if (maxPrice < parseInt(product.product_price[i].price)) {
+                      maxPrice = product.product_price[i].price
+                      cityCheapest = this.city[city].city_name
+                    }
+                    user[this.city[city].city_name] = product.product_price[i].price
+                  }
+                }
+              }
+            }
+            for (const store in this.store) {
+              for (const i in product.product_price) {
+                if (product.product_price.hasOwnProperty(i)) {
+                  if (product.product_price[i].store.store_name === this.store[store].store_name) {
+                    if (maxPriceStore < parseInt(product.product_price[i].price)) {
+                      maxPriceStore = product.product_price[i].price
+                      storeCheapest = this.store[store].store_name
+                    }
+                    user[this.store[store].store_name] = product.product_price[i].price
+                  }
+                }
+              }
+            }
+            user['city_cheapest_location'] = cityCheapest
+            user['store_cheapest_location'] = storeCheapest
+            allusers.push(user)
+          }
+          // console.log(allusers)
+          this.items = allusers
+        }).catch(err => {
+          console.log(err)
+          return []
+        })
+      },
+      loadData () {
+        setInterval(this.setepLoading, 5000)
       }
     },
     mounted () {
       this.getstore()
       this.getWishList()
+      this.loadData()
     },
     computed: {
       sortOptions () {
