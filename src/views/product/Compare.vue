@@ -39,7 +39,7 @@
         </b-col>
     </b-row>
 
-    <b-table :hover="hover" :striped="striped" :small="small" :filter="filter" responsive="sm" :items="items" :fields="fields" :current-page="currentPage" :per-page="perPage">
+    <b-table :hover="hover" :striped="striped" :small="small" :filter="filter" responsive="sm" :items="currentItems" :fields="fields" :current-page="currentPage" :per-page="perPage">
 
     </b-table>
 
@@ -113,6 +113,7 @@
         totalRows: 0,
         wishlistuid: '',
         pageLoadingCount: 1,
+        allProducts: [],
         productLatestUid: ''
       }
     },
@@ -177,10 +178,15 @@
       },
       onSelectList (param) {
         this.wishlistuid = param
+        console.log('-----------------')
+        this.allProducts = this.checkDuplication(this.allProducts)
         this.searchByCity(param)
       },
       onSelectSearchBy (param) {
         let fields = []
+        this.allProducts = this.checkDuplication(this.allProducts)
+        this.items = this.allProducts
+        this.searchByCity()
         fields.push({ key: 'product_name' })
         if (param === 'city') {
           for (const key in this.city) {
@@ -235,13 +241,6 @@
           return []
         })
       },
-      addPriceModel () {
-        this.isAddPriceModal = true
-      },
-      onDeleteOPenModal (uid) {
-        this.delete_uid = uid
-        this.isdeleteModal = true
-      },
       getcategory () {
         firebase.database().ref('/categorys/').once('value').then((snapshot) => {
           var allusers = []
@@ -257,71 +256,29 @@
         })
       },
       searchByCity (wishUid) {
-        firebase.database().ref('/products/').orderByKey().limitToFirst(100).once('value').then((snapshot) => {
-          var allusers = []
-          for (const key in snapshot.val()) {
-            this.productLatestUid = key
-            var isContinue = false
-            if (typeof wishUid !== 'undefined') {
-              if (!snapshot.val()[key].hasOwnProperty('wishlist')) {
+        var tmpAll = this.allProducts
+        var tmpItems = []
+        if (!wishUid) {
+          wishUid = this.wishlistuid
+        }
+        for (const key in tmpAll) {
+          var isContinue = false
+          if (!tmpAll[key].hasOwnProperty('wishlist')) {
+            continue
+          } else {
+            for (const wish in tmpAll[key].wishlist) {
+              if (tmpAll[key].wishlist[wish] === wishUid) {
+                isContinue = true
                 continue
-              } else {
-                for (const wish in snapshot.val()[key].wishlist) {
-                  if (snapshot.val()[key].wishlist[wish] === wishUid) {
-                    isContinue = true
-                    continue
-                  }
-                }
-              }
-            } else {
-              isContinue = true
-            }
-            if (!isContinue) {
-              continue
-            }
-            var user = []
-            var cityCheapest = ''
-            var storeCheapest = ''
-            let maxPrice = 0
-            let maxPriceStore = 0
-            var product = snapshot.val()[key]
-            user['product_name'] = snapshot.val()[key].product_name
-            for (const city in this.city) {
-              for (const i in product.product_price) {
-                if (product.product_price.hasOwnProperty(i)) {
-                  if (product.product_price[i].city.city_name === this.city[city].city_name) {
-                    if (maxPrice < parseInt(product.product_price[i].price)) {
-                      maxPrice = product.product_price[i].price
-                      cityCheapest = this.city[city].city_name
-                    }
-                    user[this.city[city].city_name] = product.product_price[i].price
-                  }
-                }
               }
             }
-            for (const store in this.store) {
-              for (const i in product.product_price) {
-                if (product.product_price.hasOwnProperty(i)) {
-                  if (product.product_price[i].store.store_name === this.store[store].store_name) {
-                    if (maxPriceStore < parseInt(product.product_price[i].price)) {
-                      maxPriceStore = product.product_price[i].price
-                      storeCheapest = this.store[store].store_name
-                    }
-                    user[this.store[store].store_name] = product.product_price[i].price
-                  }
-                }
-              }
-            }
-            user['city_cheapest_location'] = cityCheapest
-            user['store_cheapest_location'] = storeCheapest
-            allusers.push(user)
           }
-          // console.log(allusers)
-          this.items = allusers
-        }).catch(err => {
-          console.log(err)
-          return []
-        })
+          if (!isContinue) {
+            continue
+          }
+          tmpItems.push(tmpAll[key])
+        }
+        this.items = tmpItems
       },
       onchangePage (page) {
         var allusers = this.items
@@ -400,38 +357,19 @@
         return items.length
       },
       setepLoading () {
-        var allusers = this.items
-        var wishUid = this.wishlistuid
-        console.log('this is time reset')
+        var allusers = this.allProducts
         firebase.database().ref('/products/').orderByKey().startAt(this.productLatestUid).limitToFirst(100).once('value').then((snapshot) => {
-          if (snapshot.val().length < 2) {
+          if (Object.keys(snapshot.val()).length < 2) {
             return
           }
           for (const key in snapshot.val()) {
-            var isContinue = false
-            if (typeof wishUid !== 'undefined') {
-              if (!snapshot.val()[key].hasOwnProperty('wishlist')) {
-                continue
-              } else {
-                for (const wish in snapshot.val()[key].wishlist) {
-                  if (snapshot.val()[key].wishlist[wish] === wishUid) {
-                    isContinue = true
-                    continue
-                  }
-                }
-              }
-            } else {
-              isContinue = true
-            }
-            if (!isContinue) {
-              continue
-            }
             var user = []
             var cityCheapest = ''
             var storeCheapest = ''
             let maxPrice = 0
             let maxPriceStore = 0
             var product = snapshot.val()[key]
+            user = snapshot.val()[key]
             user['product_name'] = snapshot.val()[key].product_name
             for (const city in this.city) {
               for (const i in product.product_price) {
@@ -463,15 +401,36 @@
             user['store_cheapest_location'] = storeCheapest
             allusers.push(user)
           }
-          // console.log(allusers)
-          this.items = allusers
+          this.allProducts = allusers
+          this.items = this.allProducts
+          this.searchByCity(this.wishlistuid)
+          console.log(this.allProducts.length)
         }).catch(err => {
           console.log(err)
           return []
         })
       },
+      checkDuplication (param) {
+        console.log('------------', param.length)
+        var tem
+        var i = 0
+        var j
+        while (i < param.length) {
+          tem = param[i]._uid
+          j = param.length - 1
+          while (j > i) {
+            if (param[j]._uid === tem) {
+              console.log('------------', param[j])
+              param.splice(j, 1)
+            }
+            --j
+          }
+          ++i
+        }
+        return param
+      },
       loadData () {
-        setInterval(this.setepLoading, 5000)
+        setInterval(this.setepLoading, 1000)
       }
     },
     mounted () {
@@ -482,6 +441,9 @@
     computed: {
       sortOptions () {
         return this.fields.filter(f => f.sortable).map(f => { return { text: f.label, value: f.key } })
+      },
+      currentItems: function () {
+        return this.items
       }
     }
   }

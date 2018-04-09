@@ -64,7 +64,7 @@
     </b-col>
     <b-button variant="primary" class="add_button float-right" v-on:click="onAddModal"><i class="fa fa-plus"></i>&nbsp;Add</b-button>
     <b-table :hover="hover" :striped="striped" :bordered="bordered" :small="small" responsive="sm"
-    :items="items"
+    :items="currentItems"
     :filter="filter"
     :fields="fields"
     :current-page="currentPage"
@@ -309,6 +309,7 @@
     data: () => {
       return {
         items: [],
+        allProducts: [],
         deleteModal: false,
         isviewModal: false,
         wishList_uid: '',
@@ -377,6 +378,11 @@
         totalRows: 0
       }
     },
+    computed: {
+      currentItems: function () {
+        return this.items
+      }
+    },
     methods: {
       getBadge (status) {
         return status === '1' ? 'active'
@@ -393,7 +399,12 @@
         updates['/products/' + this.delete_uid] = null
         firebase.database().ref().update(updates)
         this.isdeleteModal = false
-        this.myProvider()
+        for (const key in this.allProducts) {
+          if (this.allProducts[key]._uid === this.delete_uid) {
+            this.allProducts.splice(key, 1)
+          }
+        }
+        this.items = this.allProducts
       },
       editSubmit () {
         var updates = {}
@@ -401,7 +412,25 @@
         updates['/products/' + this.editForm._uid] = this.editForm
         firebase.database().ref().update(updates)
         this.iseditmodal = false
-        this.myProvider()
+        var user = {}
+        var tmpProduct = []
+        console.log('that is _uid', this.editForm._uid)
+        for (const key in this.items) {
+          if (this.items[key]._uid === this.editForm._uid) {
+            user = this.editForm
+            user._uid = this.editForm._uid
+            user.action = this.editForm._uid
+            user.product_category = this.editForm.product_category.category_name
+            user.product_unit = this.editForm.product_unit.unit_name
+            user.company = this.editForm.company.company_name
+            user.product_package = this.editForm.product_package.package_name
+            console.log('that is user', user)
+            tmpProduct.push(user)
+          } else {
+            tmpProduct.push(this.items[key])
+          }
+        }
+        this.items = tmpProduct
         this.$msg('Edit Comapny Successfuly!')
       },
       addWishList () {
@@ -438,6 +467,25 @@
           })
         }
       },
+      checkDuplication (param) {
+        console.log('------------', param.length)
+        var tem
+        var i = 0
+        var j
+        while (i < param.length) {
+          tem = param[i]._uid
+          j = param.length - 1
+          while (j > i) {
+            if (param[j]._uid === tem) {
+              console.log('------------', param[j])
+              param.splice(j, 1)
+            }
+            --j
+          }
+          ++i
+        }
+        return param
+      },
       onAddlist (_uid) {
         this.product_uid = _uid
         firebase.database().ref('/products/' + _uid).once('value').then((snapshot) => {
@@ -454,9 +502,11 @@
         this.getstore()
         this.getunit()
         this.getpackage()
+        this.allProducts = this.checkDuplication(this.allProducts)
         firebase.database().ref('/products/' + uid).once('value').then((snapshot) => {
           this.editForm = snapshot.val()
           this.editForm._uid = uid
+          console.log(this.editForm._uid)
           this.price_data = snapshot.val().product_price
           this.iseditmodal = true
         })
@@ -617,10 +667,7 @@
         }
       },
       search () {
-        var items = this.items
-        if (items === []) {
-          this.myProvider()
-        }
+        var items = this.checkDuplication(this.allProducts)
         var filterd = []
         for (const key in items) {
           if (this.searchForm.barcode !== '' && items[key].barcode !== this.searchForm.barcode) {
@@ -640,14 +687,13 @@
           }
           filterd.push(items[key])
         }
-        console.log(filterd)
         this.items = filterd
       },
       clear () {
         for (const key in this.searchForm) {
           this.searchForm[key] = ''
         }
-        this.myProvider()
+        this.items = this.allProducts
         this.loadcount = 1
       },
       getRowCount (items) {
@@ -685,13 +731,13 @@
         })
       },
       loadData () {
-        setInterval(this.stepLoading, 5000)
+        setInterval(this.stepLoading, 1000)
       },
       stepLoading () {
-        var allusers = this.items
+        var allusers = this.allProducts
         var lastuid = ''
         firebase.database().ref('/products/').orderByKey().startAt(this.lastuid).limitToFirst(100).once('value').then((snapshot) => {
-          if (snapshot.val().length < 2) {
+          if (Object.keys(snapshot.val()).length < 2) {
             this.lastuid = this.lastuid
             return
           }
@@ -707,11 +753,9 @@
             lastuid = key
             allusers.push(user)
           }
-
-          this.items = allusers
-          this.search()
+          this.allProducts = allusers
+          // this.search()
           this.lastuid = lastuid
-          this.$store.dispatch('loadingData', lastuid)
         }).catch(err => {
           console.log(err)
           return []
