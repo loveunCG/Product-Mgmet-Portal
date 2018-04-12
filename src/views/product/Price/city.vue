@@ -162,7 +162,7 @@
         let isValidation = true
         for (const key in this.addForm) {
           if (this.addForm.hasOwnProperty(key)) {
-            if (this.addForm[key] === '' || this.addForm[key] === undefined || this.addForm[key] === []) {
+            if (this.addForm[key] === '' && key !== 'created_at' && key !== '_uid') {
               isValidation = false
             }
           }

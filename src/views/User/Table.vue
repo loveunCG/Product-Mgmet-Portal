@@ -4,15 +4,17 @@
        User Table
     </div>
     <router-link to="/user/addUser"><b-button variant="primary" class="add_button float-right" v-on:click="this.$router.push('/user/addUser')">Add</b-button></router-link>
-
-
     <b-table :hover="hover" :striped="striped" :bordered="bordered" :small="small" :busy.sync="isBusy"  responsive="sm" :items="items" :fields="fields" :current-page="currentPage" :per-page="perPage">
+      <template slot="role" slot-scope="data">
+        <b-badge>{{getRole(data.item.role)}}</b-badge>
+      </template>
       <template slot="status" slot-scope="data">
-        <b-badge :variant="getBadge(data.item.status)">{{data.item.status}}</b-badge>
+        <b-badge variant="success">{{data.item.status}}</b-badge>
       </template>
       <template slot="action" slot-scope="data">
-        <b-button variant="success" v-on:click="onEditModel(data.item.action)"><i class="fa fa-map-marker"></i>&nbsp;Edit</b-button>
-        <b-button variant="danger" v-on:click="onDeleteModal(data.item.action)"><i class="fa fa-map-marker"></i>&nbsp;Delete</b-button>
+        <b-button variant="success" v-on:click="onEditModel(data.item.action)"><i class="fa fa-edit"></i></b-button>
+        <b-button variant="danger" v-on:click="onresetPasswd(data.item.action)"><i class="fa fa-key"></i></b-button>
+        <b-button variant="danger" v-on:click="onDeleteModal(data.item.action)"><i class="fa fa-trash"></i></b-button>
       </template>
     </b-table>
     <nav>
@@ -41,21 +43,36 @@
               <b-form-radio value="1">Off</b-form-radio>
             </b-form-radio-group>
           </b-form-group>
-          <b-form-select v-model="editForm.usr_role" :options="role_option" class="mb-3" />
+          <b-form-group label="User Role">
+            <b-form-select v-model="editForm.usr_role" :options="role_option" class="mb-3" />
+          </b-form-group>
     </b-modal>
-    <b-modal title="Modal title" class="modal-warning" v-model="deleteModal" @ok="deleteSubmit" ok-variant="warning">
-      are you sure delete this user data?
+    <b-modal title="INFO" class="modal-info" v-model="deleteModal" @ok="deleteSubmit" ok-variant="info">
+      Are you sure delete this user?
+    </b-modal>
+    <b-modal title="INFO" class="modal-info" v-model="resetPasswdModel" @ok="resetPasswdSubmit" ok-variant="info">
+      <b-form-group>
+        <b-input-group>
+          <b-input-group-prepend>
+            <b-input-group-text><i class="fa fa-key"></i></b-input-group-text>
+          </b-input-group-prepend>
+          <b-form-input type="password" v-model="resetPasswd.password" placeholder="password"></b-form-input>
+        </b-input-group>
+      </b-form-group>
+      <b-form-group>
+        <b-input-group>
+          <b-input-group-prepend>
+            <b-input-group-text><i class="fa fa-key"></i></b-input-group-text>
+          </b-input-group-prepend>
+          <b-form-input type="password" v-model="resetPasswd.rpassword" placeholder="confirm"></b-form-input>
+        </b-input-group>
+      </b-form-group>
     </b-modal>
   </b-card>
 </template>
 <script>
-  /**
-   * Randomize array element order in-place.
-   * Using Durstenfeld shuffle algorithm.
-   */
-
   import * as firebase from 'firebase'
-
+  var md5 = require('js-md5')
   export default {
     name: 'c-table',
     props: {
@@ -73,11 +90,11 @@
       },
       bordered: {
         type: Boolean,
-        default: false
+        default: true
       },
       small: {
         type: Boolean,
-        default: false
+        default: true
       },
       fixed: {
         type: Boolean,
@@ -94,10 +111,15 @@
           usr_email: '',
           usr_role: '',
           usr_status: '',
-          usr_uid: '',
+          _uid: '',
           created_at: '',
           usr_password: ''
         },
+        resetPasswd: {
+          password: '',
+          rpassword: ''
+        },
+        resetPasswdModel: false,
         role_option: [
           { value: 1, text: 'supper' },
           { value: 2, text: 'normal' },
@@ -120,10 +142,34 @@
     },
     methods: {
       getBadge (status) {
-        return status === '1' ? 'active'
-          : status === '0' ? 'inactive'
-            : status === 'Pending' ? 'warning'
-              : status === 'Banned' ? 'danger' : 'primary'
+        return status === '0' ? 'active' : 'inactive'
+      },
+      getRole (status) {
+        if (status === 1) {
+          return 'Supper'
+        } else if (status === 2) {
+          return 'Normal'
+        } else {
+          return 'Low'
+        }
+      },
+      resetPasswdSubmit () {
+        if (this.resetPasswd.password === this.resetPasswd.rpassword && this.resetPasswd.password !== '') {
+          this.editForm.usr_password = md5(this.resetPasswd.password)
+          var updates = {}
+          updates['/users/' + this.editForm._uid] = this.editForm
+          firebase.database().ref().update(updates)
+          this.$msg('Reset Password Successfuly!')
+        } else {
+          this.$msg('Please Insert Correct Password!')
+        }
+      },
+      onresetPasswd (_uid) {
+        firebase.database().ref('/users/' + _uid).once('value').then((snapshot) => {
+          this.editForm = snapshot.val()
+          this.editForm._uid = _uid
+          this.resetPasswdModel = true
+        })
       },
       deleteSubmit () {
         var updates = {}
@@ -138,7 +184,7 @@
       },
       editSubmit () {
         var updates = {}
-        updates['/users/' + this.editForm.usr_uid] = this.editForm
+        updates['/users/' + this.editForm._uid] = this.editForm
         firebase.database().ref().update(updates)
         this.iseditmodal = false
         this.myProvider()
@@ -152,7 +198,7 @@
           this.editForm.usr_status = snapshot.val().usr_status
           this.editForm.usr_password = snapshot.val().usr_password
           this.editForm.created_at = snapshot.val().created_at
-          this.editForm.usr_uid = uid
+          this.editForm._uid = uid
           this.iseditmodal = true
         })
       },

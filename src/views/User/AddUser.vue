@@ -6,88 +6,81 @@
           <div slot="header">
             <strong>Add</strong> User
           </div>
-          <b-form-group
-            label="Enter your name"
-            label-for="basicName"
-            :label-cols="3"
-            :horizontal="true">
-            <b-form-input
-            id="basicName"
-            type="text"
-            placeholder="Enter your name"
-            :state="!$v.addForm.usr_name.$invalid"
-            aria-describedby="input1LiveFeedback"
-            v-model="addForm.usr_name"
-            ></b-form-input>
-           <b-form-valid-feedback>
-                Input is valid.
-           </b-form-valid-feedback>
-           <b-form-invalid-feedback>
-                Please provide a required input.
-           </b-form-invalid-feedback>
-          </b-form-group>
-          <b-form-group
-            label="Email Input"
-            label-for="basicEmail"
-            :label-cols="3"
-            :horizontal="true">
-            <b-form-input
-            id="basicEmail"
-            type="email"
-            :state="!$v.addForm.usr_email.$invalid"
-            v-model="addForm.usr_email"
-            aria-describedby="input1LiveFeedback"
-            placeholder="Enter your email"></b-form-input>
-          </b-form-group>
-          <b-form-valid-feedback>
-                Input is valid.
-          </b-form-valid-feedback>
-          <b-form-invalid-feedback>
-                  Please provide a required input.
-          </b-form-invalid-feedback>
-          <b-form-group
-            label="Password Input"
-            label-for="basicPassword"
-            :label-cols="3"
-            :horizontal="true">
-            <b-form-input
-            id="basicPassword"
-            type="password"
-            placeholder="Enter your password"
-            :state="!$v.addForm.password.$invalid"
-            v-model="addForm.password"
-            aria-describedby="input1LiveFeedback"
-            ></b-form-input>
-          </b-form-group>
-          <b-form-group
-            label="Roles"
-            label-for="basicSelect"
-            :label-cols="3"
-            :horizontal="true">
-            <b-form-select id="basicSelect"
+          <b-row>
+            <b-col sm="4">
+              <b-form-group>
+                <label for="company">User Name</label>
+                <b-form-input
+                type="text"
+                v-model="addForm.usr_name"
+                :state="!$v.addForm.usr_name.$invalid"
+                placeholder="Enter your User Name"
+                />
+                <b-form-valid-feedback>
+                      Input is valid.
+                </b-form-valid-feedback>
+                <b-form-invalid-feedback>
+                      Please provide a required input.
+                </b-form-invalid-feedback>
+              </b-form-group>
+            </b-col>
+            <b-col sm="4">
+              <b-form-group>
+                <label for="company">Email</label>
+                <b-form-input
+                type="text"
+                :state="!$v.addForm.usr_email.$invalid"
+                v-model="addForm.usr_email"
+                placeholder="Enter your Email"
+                />
+                <b-form-valid-feedback>
+                      Input is valid.
+                </b-form-valid-feedback>
+                <b-form-invalid-feedback>
+                        Please provide a required input.
+                </b-form-invalid-feedback>
+              </b-form-group>
+            </b-col>
+            <b-col sm="4">
+              <label for="product_category">User Role</label>
+              <b-form-select
+              id="product_category"
               v-model="addForm.usr_role"
-              :plain="true"
               :options="role_option"
-              value="Please select">
-            </b-form-select>
-          </b-form-group>
-          <b-form-group
-            label="Activte"
-            label-for="basicRadios"
-            :label-cols="3"
-            :horizontal="true">
-            <b-form-radio-group
-            v-model="addForm.usr_status"
-            id="basicRadios"
-              :plain="true"
+              size="md" />
+            </b-col>
+            <b-col sm="4">
+              <b-form-group>
+                <label for="vat">Password</label>
+                <b-form-input
+                type="password"
+                  v-model="addForm.usr_password"
+                placeholder="Please Insert Password">
+                </b-form-input>
+              </b-form-group>
+            </b-col>
+            <b-col sm="4">
+              <b-form-group>
+                <label for="vat">Confirm Password</label>
+                <b-form-input
+                type="password"
+                v-model="addForm.rpassword"
+                placeholder="Please Insert Password">
+                </b-form-input>
+              </b-form-group>
+            </b-col>
+            <b-col sm="4">
+              <label for="product_category">Activte</label>
+              <b-form-select
+              id="product_category"
+              v-model="addForm.usr_status"
               :options="[
-                {text: 'On',value: '1'},
-                {text: 'Off',value: '2'}
-              ]"
-              checked="2"
-              stacked>
-            </b-form-radio-group>
-          </b-form-group>
+                    {text: 'On',value: '1'},
+                    {text: 'Off',value: '0'}
+                  ]"
+              size="md" />
+            </b-col>
+          </b-row>
           <div class="form-group form-actions pull-right">
             <b-button type="submit" size="md" v-on:click="onSubmit" :disabled="$v.addForm.usr_name.$invalid" variant="primary"><i class="fa fa-dot-circle-o"></i> Submit</b-button>
             <b-button type="reset" size="md" v-on:click="reset" variant="danger"><i class="fa fa-ban"></i> Reset</b-button>
@@ -95,7 +88,6 @@
         </b-card>
       </b-col>
     </b-row>
-
     <b-modal title="Submit Successfuly" class="modal-info" v-model="infoModal"  @ok="gotoUsertable" ok-variant="info">
       Successfully Submit.
     </b-modal>
@@ -106,7 +98,7 @@
 import { required, minLength, email } from 'vuelidate/lib/validators'
 import * as firebase from 'firebase'
 import moment from 'moment'
-
+var md5 = require('js-md5')
 export default {
   name: 'forms',
   data () {
@@ -116,11 +108,13 @@ export default {
         usr_email: '',
         usr_role: '',
         usr_status: '',
-        usr_password: ''
+        usr_password: '',
+        rpassword: '',
+        created_at: ''
       },
       role_option: [
-        { value: 1, text: 'supper' },
-        { value: 2, text: 'normal' },
+        { value: 1, text: 'Supper' },
+        { value: 2, text: 'Normal' },
         { value: 3, text: 'Low' }
       ],
       infoModal: false,
@@ -144,23 +138,25 @@ export default {
     }
   },
   methods: {
-    click () {
-      // do nothing
-    },
     onSubmit () {
-      var ref = firebase.database().ref()
-      var pushref = ref.child('users')
+      if (this.addForm.usr_password !== this.addForm.rpassword) {
+        this.$msg('No Match Password!')
+        return
+      }
       if (!this.addForm.usr_email) {
+        this.$msg('Please Insert Correct Email Address!')
       } else {
-        pushref.push({
-          usr_name: this.addForm.usr_name,
-          usr_email: this.addForm.usr_email,
-          usr_role: this.addForm.usr_role,
-          usr_status: this.addForm.usr_status,
-          usr_password: this.addForm.usr_password,
-          created_at: moment().format('MMMM Do YYYY, h:mm:ss a')
+        firebase.database().ref('/users/' + md5(this.addForm.usr_email)).once('value').then((snapshot) => {
+          if (!snapshot.val()) {
+            this.addForm.created_at = moment().format('MMMM Do YYYY, h:mm:ss a')
+            this.addForm.usr_password = md5(this.addForm.usr_password)
+            firebase.database().ref('users/' + md5(this.addForm.usr_email)).set(this.addForm)
+            this.$msg('Successfully Submit!')
+            this.infoModal = true
+          } else {
+            this.$msg('Email Dupulication!')
+          }
         })
-        this.infoModal = true
       }
     },
     gotoUsertable () {
@@ -168,7 +164,9 @@ export default {
       this.$router.push({ path: '/user' })
     },
     reset () {
-
+      for (const key in this.addForm) {
+        this.addForm[key] = ''
+      }
     }
   }
 }

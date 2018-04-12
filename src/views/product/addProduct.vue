@@ -100,7 +100,7 @@
             <b-col sm="8">
               <b-list-group >
                 <b-list-group-item
-                v-for="(rprice, index) in price_data">
+                v-for="(rprice, index) in price_data" :key="index">
                   Price value: {{rprice.price}}&nbsp;&nbsp;
                   City: {{rprice.city.city_name}}&nbsp;&nbsp;
                   Store: {{rprice.store.store_name}}&nbsp;&nbsp;
@@ -217,7 +217,7 @@ export default {
       }
       for (const key in this.addForm) {
         if (this.addForm.hasOwnProperty(key)) {
-          if (this.addForm[key] === '' || this.addForm[key] === undefined || this.addForm[key] === []) {
+          if (this.addForm[key] === '') {
             isValidation = false
           }
         }
@@ -226,15 +226,16 @@ export default {
         this.$msg('Please insert full data!')
         return
       }
-      var ref = firebase.database().ref()
-      var pushref = ref.child('products')
       this.addForm.created_at = moment().format('YYYY mm dd, h:mm:ss a')
       this.addForm.product_price = this.price_data
-      pushref.push(this.addForm)
+      firebase.database().ref('products/' + this.addForm.barcode).set(this.addForm)
+      firebase.database().ref('/products/' + this.addForm.barcode).once('value').then((snapshot) => {
+        this.$store.dispatch('pushProduct', snapshot.val())
+      })
       this.isaddmodal = true
       this.$msg('Add city Successfuly!')
       for (const key in this.addForm) {
-        this.addForm[key] = ''
+        this.addForm[key] = ' '
       }
       this.price_data = []
     },
@@ -332,8 +333,6 @@ export default {
       })
     },
     addPriceSubmit () {
-      console.log('this is price_data', this.price_data)
-      console.log('this is added price data', this.price)
       if (!this.price_data) {
         this.price_data = []
       }

@@ -3,14 +3,14 @@
     <div slot="header">
        Company Table
     </div>
-    <b-button variant="primary" class="add_button float-right" v-on:click="onAddModal"><i class="fa fa-plus"></i>&nbsp;Add</b-button>
+    <b-button variant="primary" class="add_button float-right" v-on:click="onAddModal"><i class="fa fa-plus"></i></b-button>
     <b-table :hover="hover" :striped="striped" :bordered="bordered" :small="small" :busy.sync="isBusy"  responsive="sm" :items="items" :fields="fields" :current-page="currentPage" :per-page="perPage">
       <template slot="status" slot-scope="data">
         <b-badge :variant="getBadge(data.item.status)">{{data.item.status}}</b-badge>
       </template>
       <template slot="action" slot-scope="data">
-        <b-button variant="success" v-on:click="onEditModel(data.item.action)"><i class="fa fa-edit"></i>&nbsp;Edit</b-button>
-        <b-button variant="danger" v-on:click="onDeleteModal(data.item.action)"><i class="fa fa-trash"></i>&nbsp;Delete</b-button>
+        <b-button variant="success" v-on:click="onEditModel(data.item.action)"><i class="fa fa-edit"></i></b-button>
+        <b-button variant="danger" v-on:click="onDeleteModal(data.item.action)"><i class="fa fa-trash"></i></b-button>
       </template>
     </b-table>
     <nav>
@@ -100,14 +100,8 @@
   </b-card>
 </template>
 <script>
-  /**
-   * Randomize array element order in-place.
-   * Using Durstenfeld shuffle algorithm.
-   */
-
   import * as firebase from 'firebase'
   import moment from 'moment'
-
   export default {
     name: 'c-table',
     props: {
@@ -179,10 +173,7 @@
     },
     methods: {
       getBadge (status) {
-        return status === '1' ? 'active'
-          : status === '2' ? 'inactive'
-            : status === 'active' ? 'primary'
-              : status === 'inactive' ? 'danger' : 'inactive'
+        return status === '1' ? 'active' : 'inactive'
       },
       deleteSubmit () {
         var updates = {}
@@ -207,7 +198,7 @@
         let isValidation = true
         for (const key in this.addForm) {
           if (this.addForm.hasOwnProperty(key)) {
-            if (this.addForm[key] === '' || this.addForm[key] === undefined || this.addForm[key] === []) {
+            if (this.addForm[key] === '' && key !== 'created_at' && key !== '_uid') {
               isValidation = false
             }
           }
@@ -216,10 +207,12 @@
           this.$msg('Please insert full data!')
           return
         }
+        var addData = {}
         var ref = firebase.database().ref()
         var pushref = ref.child('companys')
         this.addForm.created_at = moment().format('YYYY mm dd, h:mm:ss a')
-        pushref.push(this.addForm)
+        addData = this.addForm
+        pushref.push(addData)
         this.isaddmodal = true
         this.$msg('Add Comapny Successfuly!')
         for (const key in this.addForm) {

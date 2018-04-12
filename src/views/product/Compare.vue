@@ -4,10 +4,7 @@
        Company Table
     </div>
      <b-row>
-       <b-col md="3">
-
-       </b-col>
-        <b-col md="3" class="pull-right add_button">
+        <b-col md="3" offset-md="3" class="pull-right add_button">
           <b-form-radio-group id="radios2"
           v-model="searchby"
           v-on:change="onSelectSearchBy"
@@ -36,6 +33,29 @@
                 </b-input-group-append>
               </b-input-group>
             </b-form-group>
+        </b-col>
+    </b-row>
+    <b-row>
+        <b-col md="3" offset-md="6">
+          <b-form-group>
+            <label for="vat">Page Size</label>
+            <b-form-input
+            type="number"
+            v-model="pageSize"
+            placeholder="0">
+            </b-form-input>
+          </b-form-group>
+        </b-col>
+        <b-col md="3">
+          <b-form-group>
+            <label for="vat">Go</label>
+            <b-form-input
+            type="number"
+            v-on:change="onGoToPage"
+            v-model="gotoPage"
+            placeholder="0">
+            </b-form-input>
+          </b-form-group>
         </b-col>
     </b-row>
 
@@ -109,12 +129,13 @@
         isBusy: false,
         fields: [],
         currentPage: 1,
-        perPage: 10,
         totalRows: 0,
         wishlistuid: '',
         pageLoadingCount: 1,
         allProducts: [],
-        productLatestUid: ''
+        productLatestUid: '',
+        pageSize: 10,
+        gotoPage: 1
       }
     },
     methods: {
@@ -139,8 +160,7 @@
         for (const key in this.city) {
           fields.push({ key: this.city[key].city_name, sortable: true })
         }
-        fields.push({ key: 'city_cheapest_location' })
-        // fields.push({ key: 'store_cheapest_location' })
+        fields.push({ key: 'city_cheapest_location', sortable: true })
         this.fields = fields
         this.searchByCity()
       },
@@ -178,13 +198,10 @@
       },
       onSelectList (param) {
         this.wishlistuid = param
-        console.log('-----------------')
-        this.allProducts = this.checkDuplication(this.allProducts)
         this.searchByCity(param)
       },
       onSelectSearchBy (param) {
         let fields = []
-        this.allProducts = this.checkDuplication(this.allProducts)
         this.items = this.allProducts
         this.searchByCity()
         fields.push({ key: 'product_name' })
@@ -281,80 +298,58 @@
         this.items = tmpItems
       },
       onchangePage (page) {
-        var allusers = this.items
-        console.log(this.wishlistuid, page, this.productLatestUid)
-        if (page !== this.pageLoadingCount * 10) {
-          return
-        }
-        this.pageLoadingCount++
-        console.log(this.pageLoadingCount)
-        var wishUid = this.wishlistuid
-        firebase.database().ref('/products/').orderByKey().startAt(this.productLatestUid).limitToFirst(100).once('value').then((snapshot) => {
-          for (const key in snapshot.val()) {
-            var isContinue = false
-            if (typeof wishUid !== 'undefined') {
-              if (!snapshot.val()[key].hasOwnProperty('wishlist')) {
-                continue
-              } else {
-                for (const wish in snapshot.val()[key].wishlist) {
-                  if (snapshot.val()[key].wishlist[wish] === wishUid) {
-                    isContinue = true
-                    continue
-                  }
-                }
-              }
-            } else {
-              isContinue = true
-            }
-            if (!isContinue) {
-              continue
-            }
-            var user = []
-            var cityCheapest = ''
-            var storeCheapest = ''
-            let maxPrice = 0
-            let maxPriceStore = 0
-            var product = snapshot.val()[key]
-            user['product_name'] = snapshot.val()[key].product_name
-            for (const city in this.city) {
-              for (const i in product.product_price) {
-                if (product.product_price.hasOwnProperty(i)) {
-                  if (product.product_price[i].city.city_name === this.city[city].city_name) {
-                    if (maxPrice < parseInt(product.product_price[i].price)) {
-                      maxPrice = product.product_price[i].price
-                      cityCheapest = this.city[city].city_name
-                    }
-                    user[this.city[city].city_name] = product.product_price[i].price
-                  }
-                }
-              }
-            }
-            for (const store in this.store) {
-              for (const i in product.product_price) {
-                if (product.product_price.hasOwnProperty(i)) {
-                  if (product.product_price[i].store.store_name === this.store[store].store_name) {
-                    if (maxPriceStore < parseInt(product.product_price[i].price)) {
-                      maxPriceStore = product.product_price[i].price
-                      storeCheapest = this.store[store].store_name
-                    }
-                    user[this.store[store].store_name] = product.product_price[i].price
-                  }
-                }
-              }
-            }
-            user['city_cheapest_location'] = cityCheapest
-            user['store_cheapest_location'] = storeCheapest
-            allusers.push(user)
-          }
-          // console.log(allusers)
-          this.items = allusers
-        }).catch(err => {
-          console.log(err)
-          return []
-        })
+      },
+      onGoToPage () {
+        this.currentPage = parseInt(this.gotoPage)
       },
       getRowCount (items) {
         return items.length
+      },
+      loadOnce () {
+        console.log(this.$store.getters.product)
+        let allusers = []
+        let tmpproduct = this.$store.getters.product
+        for (const key in tmpproduct) {
+          var user = []
+          var cityCheapest = ''
+          var storeCheapest = ''
+          let maxPrice = 0
+          let maxPriceStore = 0
+          var product = tmpproduct[key]
+          user = tmpproduct[key]
+          user['product_name'] = tmpproduct[key].product_name
+          for (const city in this.city) {
+            for (const i in product.product_price) {
+              if (product.product_price.hasOwnProperty(i)) {
+                if (product.product_price[i].city.city_name === this.city[city].city_name) {
+                  if (maxPrice < parseInt(product.product_price[i].price)) {
+                    maxPrice = product.product_price[i].price
+                    cityCheapest = this.city[city].city_name
+                  }
+                  user[this.city[city].city_name] = product.product_price[i].price
+                }
+              }
+            }
+          }
+          for (const store in this.store) {
+            for (const i in product.product_price) {
+              if (product.product_price.hasOwnProperty(i)) {
+                if (product.product_price[i].store.store_name === this.store[store].store_name) {
+                  if (maxPriceStore < parseInt(product.product_price[i].price)) {
+                    maxPriceStore = product.product_price[i].price
+                    storeCheapest = this.store[store].store_name
+                  }
+                  user[this.store[store].store_name] = product.product_price[i].price
+                }
+              }
+            }
+          }
+          user['city_cheapest_location'] = cityCheapest
+          user['store_cheapest_location'] = storeCheapest
+          allusers.push(user)
+        }
+        this.allProducts = allusers
+        this.items = this.allProducts
       },
       setepLoading () {
         var allusers = this.allProducts
@@ -404,7 +399,6 @@
           this.allProducts = allusers
           this.items = this.allProducts
           this.searchByCity(this.wishlistuid)
-          console.log(this.allProducts.length)
         }).catch(err => {
           console.log(err)
           return []
@@ -430,7 +424,7 @@
         return param
       },
       loadData () {
-        setInterval(this.setepLoading, 1000)
+        setTimeout(this.loadOnce, 1000)
       }
     },
     mounted () {
@@ -439,6 +433,9 @@
       this.loadData()
     },
     computed: {
+      perPage: function () {
+        return parseInt(this.pageSize)
+      },
       sortOptions () {
         return this.fields.filter(f => f.sortable).map(f => { return { text: f.label, value: f.key } })
       },

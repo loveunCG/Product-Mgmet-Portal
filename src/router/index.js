@@ -1,10 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-
-// Containers
 import Full from '@/containers/Full'
-
-// Views
 import Dashboard from '@/views/Dashboard'
 import UserTable from '@/views/UserTable'
 import AddProduct from '@/views/product/addProduct'
@@ -17,11 +13,9 @@ import Compare from '@/views/Compare'
 import Measurement from '@/views/Measurement'
 import Package from '@/views/Package'
 import WishList from '@/views/WishList'
-// Views - Pages
 import Product from '@/views/Product'
 import LoginN from '@/views/Login'
 import AuthGuard from './auth-guard'
-
 Vue.use(Router)
 
 export default new Router({
@@ -116,7 +110,7 @@ export default new Router({
             },
             {
               path: 'add',
-              name: 'Product',
+              name: 'ADD Product',
               component: AddProduct
             }
           ]

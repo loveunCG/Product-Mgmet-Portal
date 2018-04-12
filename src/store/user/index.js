@@ -1,10 +1,12 @@
 import * as firebase from 'firebase'
 import router from '../../router'
+var md5 = require('js-md5')
 
 export default {
   state: {
     user: null,
-    product: []
+    product: [],
+    latestUid: ' '
   },
   mutations: {
     setUser (state, payload) {
@@ -12,9 +14,16 @@ export default {
       localStorage.setItem('user_token', payload)
       console.log(state.user)
     },
+    setLastestUid (state, payload) {
+      state.latestUid = payload
+      console.log(state.latestUid)
+    },
     loadProduct (state, payload) {
-      state.product = payload
+      state.product = (payload)
       console.log('that is product', state.product)
+    },
+    pushProduct (state, payload) {
+      state.product[Object.keys(payload)] = (payload)
     },
     clearUser (state) {
       state.user = null
@@ -22,6 +31,25 @@ export default {
     }
   },
   actions: {
+    loadingProduct ({commit}) {
+      console.log('--------------------', this.getters.latestUid)
+      firebase.database().ref('/products/').orderByKey().once('value').then((snapshot) => {
+        var latestUid
+        if (Object.keys(snapshot.val()).length < 2) {
+          console.log(this.state.product)
+        } else {
+          commit('setLastestUid', latestUid)
+          commit('loadProduct', snapshot.val())
+          console.log('----------------', Object.keys(snapshot.val()).length)
+        }
+      }).catch(err => {
+        console.log(err)
+        return []
+      })
+    },
+    pushProduct ({commit}, payload) {
+      commit('pushProduct', payload)
+    },
     signUserUp ({commit}, payload) {
       commit('setLoading', true)
       commit('clearError')
@@ -65,8 +93,29 @@ export default {
         )
         .catch(
           error => {
-            commit('setLoading', true)
-            commit('setError', error)
+            firebase.database().ref('/users/' + md5(payload.email)).once('value').then((snapshot) => {
+              var authUser = ''
+              var isAvailabled = false
+              if (!snapshot.val()) {
+
+              } else if (snapshot.val() && snapshot.val().usr_password === md5(payload.password)) {
+                isAvailabled = true
+              }
+              if (isAvailabled) {
+                const newUser = {
+                  id: authUser.key,
+                  name: authUser.usr_name,
+                  email: authUser.usr_email,
+                  status: authUser.usr_status,
+                  photoUrl: authUser.usr_role
+                }
+                commit('setUser', newUser)
+                router.push('/dashboard')
+              } else {
+                commit('setLoading', true)
+                commit('setError', error)
+              }
+            })
           }
         )
     },
@@ -174,27 +223,6 @@ export default {
         photoUrl: payload.photoURL
       })
     },
-    loadingData ({commit}, payload) {
-      // var allusers = []
-      // firebase.database().ref('/products/').once('value').then((snapshot) => {
-      //   for (const key in snapshot.val()) {
-      //     var user = snapshot.val()[key]
-      //     user._uid = key
-      //     user.action = key
-      //     user.product_category = user.product_category.category_name
-      //     user.product_unit = user.product_unit.unit_name
-      //     user.company = user.company.company_name
-      //     user.product_package = user.product_package.package_name
-      //     user.action = key
-      //     allusers.push(user)
-      //   }
-      //   commit('loadProduct', allusers)
-      //   this.items = allusers
-      // }).catch(err => {
-      //   console.log(err)
-      //   return []
-      // })
-    },
     logout ({commit}) {
       firebase.auth().signOut()
       commit('setUser', null)
@@ -203,6 +231,12 @@ export default {
   getters: {
     user (state) {
       return state.user
+    },
+    product (state) {
+      return state.product
+    },
+    latestUid (state) {
+      return state.latestUid
     }
   }
 }

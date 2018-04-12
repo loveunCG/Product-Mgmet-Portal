@@ -1,5 +1,3 @@
-// The Vue build version to load with the `import` command
-// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
 import BootstrapVue from 'bootstrap-vue'
 import App from './App'
@@ -8,16 +6,13 @@ import * as firebase from 'firebase'
 import {store} from './store'
 import VueRouter from 'vue-router'
 import Msg from 'vue-message'
-import VueLocalStorage from 'vue-localstorage'
 import Vuelidate from 'vuelidate'
 
 Vue.use(Msg)
 Vue.use(Vuelidate)
 Vue.use(VueRouter)
 Vue.use(BootstrapVue)
-Vue.use(VueLocalStorage)
 
-/* eslint-disable no-new */
 new Vue({
   el: '#app',
   router,
@@ -32,5 +27,6 @@ new Vue({
       projectId: 'wooow-01',
       storageBucket: 'wooow-01.appspot.com'
     })
+    this.$store.dispatch('loadingProduct')
   }
 }).$mount()

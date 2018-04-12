@@ -62,7 +62,31 @@
               </b-input-group>
         </b-form-group>
     </b-col>
+
     <b-button variant="primary" class="add_button float-right" v-on:click="onAddModal"><i class="fa fa-plus"></i>&nbsp;Add</b-button>
+    <b-row>
+      <b-col md="3"  offset-md="6">
+        <b-form-group>
+          <label for="vat">Page Size</label>
+          <b-form-input
+          type="number"
+          v-model="pageSize"
+          placeholder="0">
+          </b-form-input>
+        </b-form-group>
+      </b-col>
+      <b-col md="3" class="pull-right">
+        <b-form-group>
+          <label for="vat">Go</label>
+          <b-form-input
+          type="number"
+          v-on:change="onGoToPage"
+          v-model="gotoPage"
+          placeholder="0">
+          </b-form-input>
+        </b-form-group>
+      </b-col>
+    </b-row>
     <b-table :hover="hover" :striped="striped" :bordered="bordered" :small="small" responsive="sm"
     :items="currentItems"
     :filter="filter"
@@ -73,9 +97,9 @@
         <b-badge :variant="getBadge(data.item.status)">{{data.item.status}}</b-badge>
       </template>
       <template slot="action" slot-scope="data">
-        <b-button variant="success" v-on:click="onEditModel(data.item.action)"><i class="fa fa-edit"></i>&nbsp;Edit</b-button>
-        <b-button variant="danger" v-on:click="onDeleteOPenModal(data.item.action)"><i class="fa fa-trash"></i>&nbsp;Delete</b-button>
-        <b-button variant="danger" v-on:click="onAddlist(data.item.action)"><i class="fa fa-plus"></i>&nbsp;{{ data.item.hasOwnProperty('wishlist') ? 'Add List' : 'Add List'}}</b-button>
+        <b-button variant="success" v-on:click="onEditModel(data.item.action)"><i class="fa fa-edit"></i></b-button>
+        <b-button variant="danger" v-on:click="onDeleteOPenModal(data.item.action)"><i class="fa fa-trash"></i></b-button>
+        <b-button variant="danger" v-on:click="onAddlist(data.item.action)"><i class="fa fa-plus"></i></b-button>
       </template>
       <template slot="product_price" slot-scope="data">
         <b-button variant="success" class="md-12" v-on:click="onViewModel(data.item.action)"><i class="fa fa-eye"></i>&nbsp;view</b-button>
@@ -91,8 +115,7 @@
       next-text="Next"
       hide-goto-end-buttons/>
     </nav>
-
-    <b-modal title="Product Edit" class="modal-info" size="lg" v-model="iseditmodal" @ok="editSubmit" ok-variant="primary">
+    <b-modal title="Product Edit" hide-footer class="modal-info" size="lg" v-model="iseditmodal" @ok="editSubmit" ok-variant="primary">
           <div slot="header">
             <strong>Product </strong> <small></small>
           </div>
@@ -104,6 +127,7 @@
                 type="text"
                 v-model="editForm.product_name"
                 id="company"
+                v-on:change="onchangePage"
                 placeholder="Enter your Product name"
                 />
               </b-form-group>
@@ -112,6 +136,7 @@
               <b-form-group>
                 <label for="company">Barcode</label>
                 <b-form-input
+                v-on:change="onchangePage"
                 type="text"
                 v-model="editForm.barcode"
                 id="company"
@@ -124,6 +149,7 @@
                 <label for="vat">Product size</label>
                 <b-form-input
                 type="number" id="vat"
+                v-on:change="onchangePage"
                 v-model="editForm.product_size"
                 placeholder="0">
                 </b-form-input>
@@ -134,13 +160,16 @@
             <b-col sm="4">
               <b-form-group>
                 <label for="unit">Product unit</label>
-                <b-form-select id="product_category" v-model="editForm.product_unit" :options="unit" size="md" />
+                <b-form-select id="product_category"
+                v-on:change="onchangePage"
+                v-model="editForm.product_unit" :options="unit" size="md" />
               </b-form-group>
             </b-col>
             <b-col sm="4">
               <b-form-group>
                 <label for="postal-code">items per box</label>
                 <b-form-input
+                v-on:change="onchangePage"
                 type="text"
                 id="postal-code"
                 placeholder="Please insert items per box"
@@ -151,7 +180,7 @@
             <b-col sm="4">
               <label for="product_category">product category</label>
               <b-form-select
-              id="product_category"
+              v-on:change="onchangePage"
               v-model="editForm.product_category"
               :options="category"
               size="md" />
@@ -161,20 +190,25 @@
             <b-col sm="4">
               <b-form-group>
                <label for="product_category">company</label>
-              <b-form-select id="product_category" v-model="editForm.company" :options="company" size="md" />
+              <b-form-select id="product_category"
+              v-on:change="onchangePage"
+              v-model="editForm.company" :options="company" size="md" />
               </b-form-group>
             </b-col>
             <b-col sm="4">
               <b-form-group
                 label="photo"
                 label-for="fileInputMulti">
-                   <b-form-file v-model="editForm.photo" placeholder="Choose a file..."></b-form-file>
+                   <b-form-file
+                   v-on:change="onchangePage"
+                   v-model="editForm.photo" placeholder="Choose a file..."></b-form-file>
               </b-form-group>
             </b-col>
             <b-col sm="4">
               <label for="product_category">product package</label>
               <b-form-select
               id="product_category"
+              v-on:change="onchangePage"
               v-model="editForm.product_package"
               :options="package"
               size="md" />
@@ -183,13 +217,14 @@
           <b-row>
             <b-col sm="4">
               <b-form-group>
-                <b-button variant="primary" v-on:click="addPriceModel" class="pull-right">Add Price</b-button>
+                <b-button variant="primary"
+                v-on:click="addPriceModel" class="pull-right">Add Price</b-button>
               </b-form-group>
             </b-col>
             <b-col sm="8">
               <b-list-group >
                 <b-list-group-item
-                v-for="(rprice, index) in price_data">
+                v-for="(rprice, index) in price_data" :key="index">
                   Price value: {{rprice.price}}&nbsp;&nbsp;
                   City: {{rprice.city.city_name}}&nbsp;&nbsp;
                   Store: {{rprice.store.store_name}}&nbsp;&nbsp;
@@ -201,10 +236,13 @@
               </b-list-group>
             </b-col>
           </b-row>
+          <div class="form-group form-actions pull-right add_button">
+            <b-button type="submit" v-on:click="editSubmit" :disabled="isSubmit" variant="primary">Save</b-button>
+          </div>
     </b-modal>
     <b-modal title="Price Info" v-model="isviewModal" @ok="isviewModal = false">
       <b-list-group>
-          <b-list-group-item v-for="(rprice, index) in view_price_data">
+          <b-list-group-item v-for="(rprice, index) in view_price_data" :key="index">
               Price value: {{rprice.price}}&nbsp;&nbsp;
               City: {{rprice.city.city_name}}&nbsp;&nbsp;
               Store: {{rprice.store.store_name}}&nbsp;&nbsp;
@@ -256,7 +294,7 @@
          </b-form-group>
          <b-list-group>
            <b-list-group-item
-                v-for="(rprice, index) in editForm.wishlist">
+                v-for="(rprice, index) in editForm.wishlist" :key="index">
                   Wish List: {{wishList_data[rprice].wash_name}}&nbsp;
                  <b-button
                  variant="danger"
@@ -268,15 +306,8 @@
     </b-modal>
   </b-card>
 </div>
-
-
 </template>
 <script>
-  /**
-   * Randomize array element order in-place.
-   * Using Durstenfeld shuffle algorithm.
-   */
-
   import * as firebase from 'firebase'
   export default {
     name: 'c-table',
@@ -339,7 +370,7 @@
         },
         wishlists: [],
         isdeleteModal: false,
-        isSubmit: false,
+        isSubmit: true,
         city: [],
         filter: null,
         price_data: [],
@@ -359,8 +390,8 @@
         iseditmodal: false,
         isBusy: false,
         fields: [
-          {key: 'product_name', text: 'Product Name'},
-          {key: 'barcode'},
+          {key: 'product_name', text: 'Product Name', sortable: true},
+          {key: 'barcode', sortable: true},
           {key: 'product_package'},
           {key: 'product_size', text: 'Product Size'},
           {key: 'items_of_box', text: 'Item Number'},
@@ -373,17 +404,24 @@
         ],
         wishList_data: [],
         loadcount: 1,
+        pageSize: 10,
+        totalRows: 0,
         currentPage: 1,
-        perPage: 10,
-        totalRows: 0
+        gotoPage: 1
       }
     },
     computed: {
+      perPage: function () {
+        return parseInt(this.pageSize)
+      },
       currentItems: function () {
         return this.items
       }
     },
     methods: {
+      onGoToPage () {
+        this.currentPage = parseInt(this.gotoPage)
+      },
       getBadge (status) {
         return status === '1' ? 'active'
           : status === '2' ? 'inactive'
@@ -415,6 +453,7 @@
         var user = {}
         var tmpProduct = []
         console.log('that is _uid', this.editForm._uid)
+        this.$store.dispatch('pushProduct', this.editForm)
         for (const key in this.items) {
           if (this.items[key]._uid === this.editForm._uid) {
             user = this.editForm
@@ -430,7 +469,9 @@
             tmpProduct.push(this.items[key])
           }
         }
+        this.allProducts = tmpProduct
         this.items = tmpProduct
+        this.isSubmit = true
         this.$msg('Edit Comapny Successfuly!')
       },
       addWishList () {
@@ -462,8 +503,8 @@
             }
             updates['/products/' + this.product_uid] = this.editForm
             firebase.database().ref().update(updates)
+            this.$store.dispatch('pushProduct', this.editForm)
             this.$msg('Successfuly Add list!')
-            this.myProvider()
           })
         }
       },
@@ -632,42 +673,17 @@
           }
           this.items = allusers
           this.lastuid = lastuid
-          this.$store.dispatch('loadingData', lastuid)
         }).catch(err => {
           console.log(err)
           return []
         })
       },
       onchangePage (page) {
-        console.log('cuurent page', page, this.lastuid)
-        if (page === this.loadcount * 10) {
-          this.loadcount++
-          var allusers = this.items
-          var lastuid = ''
-          firebase.database().ref('/products/').orderByKey().startAt(this.lastuid).limitToFirst(100).once('value').then((snapshot) => {
-            for (const key in snapshot.val()) {
-              var user = snapshot.val()[key]
-              user._uid = key
-              user.action = key
-              user.product_category = user.product_category.category_name
-              user.product_unit = user.product_unit.unit_name
-              user.company = user.company.company_name
-              user.product_package = user.product_package.package_name
-              user.action = key
-              lastuid = key
-              allusers.push(user)
-            }
-            this.items = allusers
-            this.lastuid = lastuid
-            this.$store.dispatch('loadingData', lastuid)
-          }).catch(err => {
-            console.log(err)
-            return []
-          })
-        }
+        this.gotoPage = page
+        this.isSubmit = false
       },
       search () {
-        var items = this.checkDuplication(this.allProducts)
+        var items = (this.allProducts)
         var filterd = []
         for (const key in items) {
           if (this.searchForm.barcode !== '' && items[key].barcode !== this.searchForm.barcode) {
@@ -731,7 +747,32 @@
         })
       },
       loadData () {
-        setInterval(this.stepLoading, 1000)
+        setTimeout(this.onceLoading, 1000)
+      },
+      onceLoading () {
+        console.log(this.$store.getters.product)
+        let pushProduct = []
+        let tmpproduct = this.$store.getters.product
+        for (const key in tmpproduct) {
+          var user = tmpproduct[key]
+          if (user.product_category.hasOwnProperty('category_name')) {
+            user.product_category = user.product_category.category_name
+          }
+          if (user.product_unit.hasOwnProperty('unit_name')) {
+            user.product_unit = user.product_unit.unit_name
+          }
+          if (user.product_package.hasOwnProperty('package_name')) {
+            user.product_package = user.product_package.package_name
+          }
+          if (user.company.hasOwnProperty('company_name')) {
+            user.company = user.company.company_name
+          }
+          user._uid = key
+          user.action = key
+          pushProduct.push(user)
+        }
+        this.allProducts = pushProduct
+        this.items = this.allProducts
       },
       stepLoading () {
         var allusers = this.allProducts
@@ -741,6 +782,7 @@
             this.lastuid = this.lastuid
             return
           }
+          console.log('product table loading ', Object.keys(snapshot.val()).length)
           for (const key in snapshot.val()) {
             var user = snapshot.val()[key]
             user._uid = key
@@ -754,7 +796,8 @@
             allusers.push(user)
           }
           this.allProducts = allusers
-          // this.search()
+          this.items = this.allProducts
+          this.search()
           this.lastuid = lastuid
         }).catch(err => {
           console.log(err)
@@ -763,7 +806,6 @@
       }
     },
     mounted () {
-      this.myProvider()
       this.getcity()
       this.getstore()
       this.getcompany()
