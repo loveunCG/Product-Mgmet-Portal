@@ -87,7 +87,7 @@
               <b-form-group
                 label="photo"
                 label-for="fileInputMulti">
-                   <b-form-file v-model="addForm.photo" placeholder="Choose a file..."></b-form-file>
+                   <b-form-file accept=".jpg, .png, .gif" v-model="addForm.photo" placeholder="Choose a file..."></b-form-file>
               </b-form-group>
             </b-col>
           </b-row>
@@ -211,6 +211,7 @@ export default {
   methods: {
     onSubmit () {
       let isValidation = true
+      console.log(this.addForm.photo)
       if (this.addForm.barcode === '') {
         this.$msg('Please insert barcode!')
         return
@@ -228,10 +229,25 @@ export default {
       }
       this.addForm.created_at = moment().format('YYYY mm dd, h:mm:ss a')
       this.addForm.product_price = this.price_data
+      var imagepath = 'images/' + this.addForm.barcode + this.addForm.photo.name
+      var storageRef = firebase.storage().ref()
+      var isFile = this.addForm.photo.hasOwnProperty('name')
+      // Create a reference to 'mountains.jpg'
+      var mountainsRef = storageRef.child(imagepath)
+      if (isFile) {
+        mountainsRef.put(this.addForm.photo).then(function (snapshot) {
+          console.log('Uploaded a blob or file!')
+        })
+      }
+
+      this.addForm.photo = imagepath
+      console.log(this.addForm.photo)
+      this.addForm._uid = this.addForm.barcode
       firebase.database().ref('products/' + this.addForm.barcode).set(this.addForm)
       firebase.database().ref('/products/' + this.addForm.barcode).once('value').then((snapshot) => {
         this.$store.dispatch('pushProduct', snapshot.val())
       })
+      // Create a root reference
       this.isaddmodal = true
       this.$msg('Add city Successfuly!')
       for (const key in this.addForm) {

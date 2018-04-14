@@ -59,7 +59,17 @@
         </b-col>
     </b-row>
 
-    <b-table :hover="hover" :striped="striped" :small="small" :filter="filter" responsive="sm" :items="currentItems" :fields="fields" :current-page="currentPage" :per-page="perPage">
+    <b-table
+    :hover="hover"
+    :striped="striped"
+    :small="small"
+    :filter="filter"
+    responsive="sm"
+    :items="currentItems"
+    :fields="fields"
+    :current-page="currentPage"
+    :per-page="perPage"
+    >
 
     </b-table>
 

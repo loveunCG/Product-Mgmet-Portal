@@ -446,6 +446,9 @@
       },
       editSubmit () {
         var updates = {}
+        if (typeof this.price_data === 'undefined') {
+          this.price_data = []
+        }
         this.editForm.product_price = this.price_data
         updates['/products/' + this.editForm._uid] = this.editForm
         firebase.database().ref().update(updates)

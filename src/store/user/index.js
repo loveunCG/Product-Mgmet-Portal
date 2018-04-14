@@ -6,7 +6,8 @@ export default {
   state: {
     user: null,
     product: [],
-    latestUid: ' '
+    latestUid: ' ',
+    test: {}
   },
   mutations: {
     setUser (state, payload) {
@@ -23,7 +24,9 @@ export default {
       console.log('that is product', state.product)
     },
     pushProduct (state, payload) {
-      state.product[Object.keys(payload)] = (payload)
+      state.product[payload.barcode] = payload
+      state.test[payload.barcode] = (payload)
+      console.log(payload)
     },
     clearUser (state) {
       state.user = null
@@ -101,6 +104,7 @@ export default {
               } else if (snapshot.val() && snapshot.val().usr_password === md5(payload.password)) {
                 isAvailabled = true
               }
+              authUser = snapshot.val()
               if (isAvailabled) {
                 const newUser = {
                   id: authUser.key,
