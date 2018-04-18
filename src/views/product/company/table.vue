@@ -6,7 +6,7 @@
     <b-button variant="primary" class="add_button float-right" v-on:click="onAddModal"><i class="fa fa-plus"></i></b-button>
     <b-table :hover="hover" :striped="striped" :bordered="bordered" :small="small" :busy.sync="isBusy"  responsive="sm" :items="items" :fields="fields" :current-page="currentPage" :per-page="perPage">
       <template slot="status" slot-scope="data">
-        <b-badge :variant="getBadge(data.item.status)">{{data.item.status}}</b-badge>
+        <b-badge>{{getBadge(data.item.status)}}</b-badge>
       </template>
       <template slot="action" slot-scope="data">
         <b-button variant="success" v-on:click="onEditModel(data.item.action)"><i class="fa fa-edit"></i></b-button>
@@ -49,8 +49,8 @@
       </b-form-group>
       <b-form-group label="IsActive">
           <b-form-radio-group id="radios2" v-model="editForm.is_active" name="radioSubComponent">
-              <b-form-radio value="0">On</b-form-radio>
-              <b-form-radio value="1">Off</b-form-radio>
+              <b-form-radio value="1">On</b-form-radio>
+              <b-form-radio value="0">Off</b-form-radio>
           </b-form-radio-group>
       </b-form-group>
     </b-modal>
@@ -88,8 +88,8 @@
       </b-form-group>
       <b-form-group label="IsActive">
           <b-form-radio-group id="radios2" v-model="addForm.is_active" name="radioSubComponent">
-              <b-form-radio value="0">On</b-form-radio>
-              <b-form-radio value="1">Off</b-form-radio>
+              <b-form-radio value="1">On</b-form-radio>
+              <b-form-radio value="0">Off</b-form-radio>
           </b-form-radio-group>
       </b-form-group>
     </b-modal>
@@ -153,8 +153,8 @@
         },
         isaddmodal: false,
         active: [
-          { value: 2, text: 'On' },
-          { value: 1, text: 'Off' }
+          { value: 0, text: 'Off' },
+          { value: 1, text: 'On' }
         ],
         iseditmodal: false,
         isBusy: false,
@@ -173,7 +173,7 @@
     },
     methods: {
       getBadge (status) {
-        return status === '1' ? 'active' : 'inactive'
+        return parseInt(status) === 1 ? 'active' : 'inactive'
       },
       deleteSubmit () {
         var updates = {}
@@ -188,7 +188,7 @@
       },
       editSubmit () {
         var updates = {}
-        updates['/companys/' + this.editForm.company_uid] = this.editForm
+        updates['/companys/' + this.editForm._uid] = this.editForm
         firebase.database().ref().update(updates)
         this.iseditmodal = false
         this.myProvider()
@@ -228,7 +228,7 @@
           this.editForm.company_address = snapshot.val().company_address
           this.editForm.is_active = snapshot.val().is_active
           this.editForm.created_at = snapshot.val().created_at
-          this.editForm.company_uid = uid
+          this.editForm._uid = uid
           this.iseditmodal = true
         })
       },
@@ -237,7 +237,7 @@
           var allusers = []
           for (const key in snapshot.val()) {
             var user = snapshot.val()[key]
-            allusers.push({name: user.company_name, registered: user.created_at, phone: user.company_phone, status: this.getBadge(user.is_active), address: user.company_address, action: (key)})
+            allusers.push({name: user.company_name, registered: user.created_at, phone: user.company_phone, status: (user.is_active), address: user.company_address, action: (key)})
           }
           this.items = allusers
         }).catch(err => {

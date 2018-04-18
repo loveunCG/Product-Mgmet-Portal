@@ -70,7 +70,9 @@
     :current-page="currentPage"
     :per-page="perPage"
     >
-
+      <template slot="action" slot-scope="data">
+        <b-button variant="danger" v-on:click="onDeleteOPenModal(data.item.action)"><i class="fa fa-trash"></i></b-button>
+      </template>
     </b-table>
 
     <nav>
@@ -82,6 +84,10 @@
       prev-text="Prev"
       next-text="Next" hide-goto-end-buttons/>
     </nav>
+
+    <b-modal title="Info" class="modal-info" v-model="isdeleteModal" @ok="deleteSubmit">
+      are you sure delete this Product?
+    </b-modal>
   </b-card>
 </template>
 <script>
@@ -149,28 +155,42 @@
       }
     },
     methods: {
+      onDeleteOPenModal (uid) {
+        this.delete_uid = uid
+        this.isdeleteModal = true
+      },
+
+      deleteSubmit () {
+        var updates = {}
+        updates['/products/' + this.delete_uid] = null
+        firebase.database().ref().update(updates)
+        this.isdeleteModal = false
+
+        for (const key in this.allProducts) {
+          if (this.allProducts[key]._uid === this.delete_uid) {
+            this.allProducts.splice(key, 1)
+          }
+        }
+        this.items = this.allProducts
+        this.$store.dispatch('deleteProduct', this.delete_uid)
+      },
       getBadge (status) {
         return status === '1' ? 'active'
           : status === '2' ? 'inactive'
             : status === 'active' ? 'primary'
               : status === 'inactive' ? 'danger' : 'inactive'
       },
-      deleteSubmit () {
-        var updates = {}
-        updates['/products/' + this.delete_uid] = null
-        firebase.database().ref().update(updates)
-        this.isdeleteModal = false
-        this.searchByCity()
-      },
       init () {
         let fields = []
         fields = [
-          { key: 'product_name', sortable: true }
+          { key: 'product_name', sortable: true },
+          { key: 'barcode', sortable: true }
         ]
         for (const key in this.city) {
           fields.push({ key: this.city[key].city_name, sortable: true })
         }
         fields.push({ key: 'city_cheapest_location', sortable: true })
+        fields.push({ key: 'action', sortable: true })
         this.fields = fields
         this.searchByCity()
       },
@@ -212,9 +232,10 @@
       },
       onSelectSearchBy (param) {
         let fields = []
-        this.items = this.allProducts
+        this.items = this.$store.getters.product
         this.searchByCity()
         fields.push({ key: 'product_name' })
+        fields.push({ key: 'barcode' })
         if (param === 'city') {
           for (const key in this.city) {
             if (this.store.hasOwnProperty(key)) {
@@ -222,6 +243,7 @@
             }
           }
           fields.push({ key: 'city_cheapest_location' })
+          fields.push({ key: 'action' })
         } else {
           for (const key in this.store) {
             if (this.store.hasOwnProperty(key)) {
@@ -229,9 +251,10 @@
             }
           }
           fields.push({ key: 'store_cheapest_location' })
+          fields.push({ key: 'action' })
         }
-        console.log(fields)
         this.fields = fields
+        console.log(this.fields)
       },
       getstore () {
         firebase.database().ref('/stores/').once('value').then((snapshot) => {
@@ -283,7 +306,7 @@
         })
       },
       searchByCity (wishUid) {
-        var tmpAll = this.allProducts
+        var tmpAll = this.$store.getters.product
         var tmpItems = []
         if (!wishUid) {
           wishUid = this.wishlistuid
@@ -316,23 +339,23 @@
         return items.length
       },
       loadOnce () {
-        console.log(this.$store.getters.product)
         let allusers = []
         let tmpproduct = this.$store.getters.product
         for (const key in tmpproduct) {
           var user = []
           var cityCheapest = ''
           var storeCheapest = ''
-          let maxPrice = 0
-          let maxPriceStore = 0
+          let maxPrice = 1000000000
+          let maxPriceStore = 10000000000
           var product = tmpproduct[key]
           user = tmpproduct[key]
           user['product_name'] = tmpproduct[key].product_name
+          user['barcode'] = tmpproduct[key].barcode
           for (const city in this.city) {
             for (const i in product.product_price) {
               if (product.product_price.hasOwnProperty(i)) {
                 if (product.product_price[i].city.city_name === this.city[city].city_name) {
-                  if (maxPrice < parseInt(product.product_price[i].price)) {
+                  if (maxPrice > parseInt(product.product_price[i].price)) {
                     maxPrice = product.product_price[i].price
                     cityCheapest = this.city[city].city_name
                   }
@@ -345,7 +368,7 @@
             for (const i in product.product_price) {
               if (product.product_price.hasOwnProperty(i)) {
                 if (product.product_price[i].store.store_name === this.store[store].store_name) {
-                  if (maxPriceStore < parseInt(product.product_price[i].price)) {
+                  if (maxPriceStore > parseInt(product.product_price[i].price)) {
                     maxPriceStore = product.product_price[i].price
                     storeCheapest = this.store[store].store_name
                   }
@@ -356,63 +379,11 @@
           }
           user['city_cheapest_location'] = cityCheapest
           user['store_cheapest_location'] = storeCheapest
+          user['action'] = key
           allusers.push(user)
         }
         this.allProducts = allusers
         this.items = this.allProducts
-      },
-      setepLoading () {
-        var allusers = this.allProducts
-        firebase.database().ref('/products/').orderByKey().startAt(this.productLatestUid).limitToFirst(100).once('value').then((snapshot) => {
-          if (Object.keys(snapshot.val()).length < 2) {
-            return
-          }
-          for (const key in snapshot.val()) {
-            var user = []
-            var cityCheapest = ''
-            var storeCheapest = ''
-            let maxPrice = 0
-            let maxPriceStore = 0
-            var product = snapshot.val()[key]
-            user = snapshot.val()[key]
-            user['product_name'] = snapshot.val()[key].product_name
-            for (const city in this.city) {
-              for (const i in product.product_price) {
-                if (product.product_price.hasOwnProperty(i)) {
-                  if (product.product_price[i].city.city_name === this.city[city].city_name) {
-                    if (maxPrice < parseInt(product.product_price[i].price)) {
-                      maxPrice = product.product_price[i].price
-                      cityCheapest = this.city[city].city_name
-                    }
-                    user[this.city[city].city_name] = product.product_price[i].price
-                  }
-                }
-              }
-            }
-            for (const store in this.store) {
-              for (const i in product.product_price) {
-                if (product.product_price.hasOwnProperty(i)) {
-                  if (product.product_price[i].store.store_name === this.store[store].store_name) {
-                    if (maxPriceStore < parseInt(product.product_price[i].price)) {
-                      maxPriceStore = product.product_price[i].price
-                      storeCheapest = this.store[store].store_name
-                    }
-                    user[this.store[store].store_name] = product.product_price[i].price
-                  }
-                }
-              }
-            }
-            user['city_cheapest_location'] = cityCheapest
-            user['store_cheapest_location'] = storeCheapest
-            allusers.push(user)
-          }
-          this.allProducts = allusers
-          this.items = this.allProducts
-          this.searchByCity(this.wishlistuid)
-        }).catch(err => {
-          console.log(err)
-          return []
-        })
       },
       checkDuplication (param) {
         console.log('------------', param.length)

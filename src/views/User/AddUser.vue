@@ -1,13 +1,13 @@
 <template>
   <div class="animated fadeIn">
     <b-row>
-      <b-col md="12">
+      <b-col offset-md="2" md="8">
         <b-card>
           <div slot="header">
             <strong>Add</strong> User
           </div>
           <b-row>
-            <b-col sm="4">
+            <b-col sm="6">
               <b-form-group>
                 <label for="company">User Name</label>
                 <b-form-input
@@ -24,7 +24,7 @@
                 </b-form-invalid-feedback>
               </b-form-group>
             </b-col>
-            <b-col sm="4">
+            <b-col sm="6">
               <b-form-group>
                 <label for="company">Email</label>
                 <b-form-input
@@ -40,14 +40,6 @@
                         Please provide a required input.
                 </b-form-invalid-feedback>
               </b-form-group>
-            </b-col>
-            <b-col sm="4">
-              <label for="product_category">User Role</label>
-              <b-form-select
-              id="product_category"
-              v-model="addForm.usr_role"
-              :options="role_option"
-              size="md" />
             </b-col>
             <b-col sm="4">
               <b-form-group>
@@ -79,6 +71,35 @@
                     {text: 'Off',value: '0'}
                   ]"
               size="md" />
+            </b-col>
+            <b-col sm="8">
+              <b-form-group
+                label="User Role"
+                label-for="basicInlineCheckboxes"
+                :label-cols="3"
+                :horizontal="true">
+                <b-form-checkbox-group id="basicInlineCheckboxes"
+                v-model="addForm.usr_role"
+                :plain="true"
+                 v-on:change="onChangeSelect"
+                :checked="addForm.usr_role">
+                  <b-form-checkbox :plain="true" value="adduser">Add User</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="edituser">Edit User</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="deleteuser">Remove User</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="changeuser">Reset Password</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="usertable">User Table</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="product_table">Product Table</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="add_product">Add Product</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="city">City</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="company">Company</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="package">Package</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="category">Category</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="unit">Unit</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="store">Store</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="compare">Compare</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="wishlist">Wish List</b-form-checkbox>
+                </b-form-checkbox-group>
+              </b-form-group>
             </b-col>
           </b-row>
           <div class="form-group form-actions pull-right">
@@ -138,6 +159,9 @@ export default {
     }
   },
   methods: {
+    onChangeSelect () {
+      console.log(this.addForm.usr_role)
+    },
     onSubmit () {
       if (this.addForm.usr_password !== this.addForm.rpassword) {
         this.$msg('No Match Password!')

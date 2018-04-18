@@ -1,3 +1,13 @@
+var userRole = JSON.parse(localStorage.getItem('user_role'))
+var hasRole = (param) => {
+  var isHide = true
+  for (const key in userRole) {
+    if (userRole[key] === param) {
+      isHide = false
+    }
+  }
+  return isHide
+}
 export default {
   items: [
     {
@@ -22,16 +32,19 @@ export default {
       name: 'User Manager',
       url: '/user',
       icon: 'fa fa-users',
+      hide: false,
       children: [
         {
           name: 'User Table',
           url: '/user/usertable',
-          icon: 'fa fa-user'
+          icon: 'fa fa-user',
+          hide: hasRole('usertable')
         },
         {
           name: 'Add User',
           url: '/user/addUser',
-          icon: 'fa fa-user-plus'
+          icon: 'fa fa-user-plus',
+          hide: hasRole('adduser')
         }
       ]
     },
@@ -43,24 +56,29 @@ export default {
       name: 'Product',
       url: '/product',
       icon: 'fa fa-shopping-basket',
+      hide: false,
       children: [
         {
           name: 'Product Table',
           url: '/product/table',
-          icon: 'fa fa-shopping-cart'
+          icon: 'fa fa-shopping-cart',
+          hide: hasRole('product_table')
         },
         {
           name: 'Add Product',
           url: '/product/add',
+          hide: hasRole('add_product'),
           icon: 'fa fa-shopping-bag'
         },
         {
           name: 'Compare Price',
+          hide: hasRole('compare'),
           url: '/product/compare',
           icon: 'fa fa-scribd'
         },
         {
           name: 'Wish List',
+          hide: hasRole('wishlist'),
           url: '/product/wishlist',
           icon: 'fa fa-address-card'
         }
@@ -74,6 +92,7 @@ export default {
     {
       name: 'Company',
       url: '/company',
+      hide: hasRole('company'),
       icon: 'fa fa-university',
       badge: {
         variant: 'primary'
@@ -82,31 +101,37 @@ export default {
     {
       name: 'City & Store',
       url: '/price',
+      hide: false,
       icon: 'fa fa-gears',
       children: [
         {
           name: 'Category',
           url: '/category',
+          hide: hasRole('category'),
           icon: 'fa fa-cube'
         },
         {
           name: 'City',
           url: '/city',
+          hide: hasRole('city'),
           icon: 'fa fa-archive'
         },
         {
           name: 'Store',
           url: '/store',
+          hide: hasRole('store'),
           icon: 'fa fa-microchip'
         },
         {
           name: 'Package',
           url: '/package',
+          hide: hasRole('package'),
           icon: 'fa fa-briefcase'
         },
         {
           name: 'measurement',
           url: '/measurement',
+          hide: hasRole('unit'),
           icon: 'fa fa-opencart'
         }
       ]

@@ -87,11 +87,33 @@
               <b-form-group
                 label="photo"
                 label-for="fileInputMulti">
-                   <b-form-file accept=".jpg, .png, .gif" v-model="addForm.photo" placeholder="Choose a file..."></b-form-file>
+                   <b-form-file accept=".jpg, .png, .gif"
+                   v-model="addForm.photo"
+                   v-on:input="onInsertFile()"
+                   placeholder="Choose a file..."></b-form-file>
               </b-form-group>
             </b-col>
           </b-row>
           <b-row>
+            <b-col sm="12">
+              <b-card-group>
+                <b-card
+                title=""
+                v-for="(url, index) in photoUrl" :key="index"
+                      v-bind:img-src="url.url"
+                      img-alt="Image"
+                      img-top
+                      tag="article"
+                      style="max-width: 20rem;"
+                      class="mb-2 img-card-photo">
+                  <b-button
+                  v-on:click = "ondeleteImg(url)"
+                  variant="primary"><i class="fa fa-trash"></i></b-button>
+                </b-card>
+              </b-card-group>
+            </b-col>
+          </b-row>
+          <b-row class="price-add-button">
             <b-col sm="4">
               <b-form-group>
                 <b-button variant="primary" v-on:click="addPriceModel" class="pull-right">Add Price</b-button>
@@ -107,7 +129,7 @@
                  <b-button
                  variant="danger"
                  v-on:click="onDeleteModal(index)"
-                 class="pull-right"><i class="fa fa-trash"></i>&nbsp;Delete</b-button>
+                 class="pull-right"><i class="fa fa-trash"></i></b-button>
                 </b-list-group-item>
               </b-list-group>
             </b-col>
@@ -175,6 +197,7 @@ export default {
         items_of_box: '',
         company: {}
       },
+      photoUrl: [],
       isSubmit: false,
       city: [],
       price_data: [],
@@ -209,6 +232,47 @@ export default {
     }
   },
   methods: {
+    ondeleteImg (img) {
+      console.log(img)
+      var storageRef = firebase.storage().ref()
+      var desertRef = storageRef.child(img.path)
+      desertRef.delete().then(() => {
+        var tmp = []
+        for (const key in this.photoUrl) {
+          if (this.photoUrl.hasOwnProperty(key)) {
+            if (this.photoUrl[key].path === img.path) {
+              continue
+            }
+          }
+          tmp.push(this.photoUrl[key])
+        }
+        this.photoUrl = tmp
+      }).catch((error) => {
+        console.log(error)
+      })
+    },
+    onInsertFile () {
+      var _this = this
+      if (this.addForm.barcode === '') {
+        this.$msg('Please insert barcode!')
+        return
+      }
+      var isFile = false
+      try {
+        isFile = this.addForm.photo.name
+      } catch (error) {
+        console.log(error)
+      }
+      var imagepath = 'images/' + this.addForm.barcode + '/' + this.addForm.photo.name
+      var storageRef = firebase.storage().ref()
+      var mountainsRef = storageRef.child(imagepath)
+      if (isFile) {
+        mountainsRef.put(this.addForm.photo).then(function (snapshot) {
+          console.log('Uploaded a blob or file!', snapshot.downloadURL, snapshot.metadata.fullPath)
+          _this.photoUrl.push({url: snapshot.downloadURL, path: snapshot.metadata.fullPath})
+        })
+      }
+    },
     onSubmit () {
       let isValidation = true
       console.log(this.addForm.photo)
@@ -229,31 +293,20 @@ export default {
       }
       this.addForm.created_at = moment().format('YYYY mm dd, h:mm:ss a')
       this.addForm.product_price = this.price_data
-      var imagepath = 'images/' + this.addForm.barcode + this.addForm.photo.name
-      var storageRef = firebase.storage().ref()
-      var isFile = this.addForm.photo.hasOwnProperty('name')
-      // Create a reference to 'mountains.jpg'
-      var mountainsRef = storageRef.child(imagepath)
-      if (isFile) {
-        mountainsRef.put(this.addForm.photo).then(function (snapshot) {
-          console.log('Uploaded a blob or file!')
-        })
-      }
-
-      this.addForm.photo = imagepath
+      this.addForm.photo = this.photoUrl
       console.log(this.addForm.photo)
       this.addForm._uid = this.addForm.barcode
       firebase.database().ref('products/' + this.addForm.barcode).set(this.addForm)
       firebase.database().ref('/products/' + this.addForm.barcode).once('value').then((snapshot) => {
         this.$store.dispatch('pushProduct', snapshot.val())
       })
-      // Create a root reference
       this.isaddmodal = true
       this.$msg('Add city Successfuly!')
       for (const key in this.addForm) {
         this.addForm[key] = ' '
       }
       this.price_data = []
+      this.photoUrl = []
     },
     reset () {
       this.addForm = []
@@ -372,3 +425,19 @@ export default {
   }
 }
 </script>
+
+<style>
+  .price-add-button {
+    padding-top: 15px;
+  }
+  .form-actions {
+    padding-top: 15px;
+  }
+  .img-card-photo {
+    margin: 15px;
+  }
+  .card-img-top {
+    height: 150px;
+  }
+
+</style>

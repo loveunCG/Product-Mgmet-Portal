@@ -7,8 +7,8 @@
     <b-table :hover="hover" :striped="striped" :bordered="bordered" :small="small" :busy.sync="isBusy"  responsive="sm" :items="items" :fields="fields" :current-page="currentPage" :per-page="perPage">
 
       <template slot="action" slot-scope="data">
-        <b-button variant="primary" v-on:click="onEditModel(data.item.action)"><i class="fa fa-edit"></i>&nbsp;Edit</b-button>
-        <b-button variant="danger" v-on:click="onDeleteModal(data.item.action)"><i class="fa fa-trash"></i>&nbsp;Delete</b-button>
+        <b-button variant="primary" v-on:click="onEditModel(data.item.action)"><i class="fa fa-edit"></i></b-button>
+        <b-button variant="danger" v-on:click="onDeleteModal(data.item.action)"><i class="fa fa-trash"></i></b-button>
       </template>
     </b-table>
     <nav>

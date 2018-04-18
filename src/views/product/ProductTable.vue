@@ -200,7 +200,8 @@
                 label="photo"
                 label-for="fileInputMulti">
                    <b-form-file
-                   v-on:change="onchangePage"
+                   accept=".jpg, .png, .gif"
+                   v-on:input="onInsertFile()"
                    v-model="editForm.photo" placeholder="Choose a file..."></b-form-file>
               </b-form-group>
             </b-col>
@@ -212,6 +213,25 @@
               v-model="editForm.product_package"
               :options="package"
               size="md" />
+            </b-col>
+          </b-row>
+          <b-row>
+            <b-col sm="12">
+              <b-card-group>
+                <b-card
+                title=""
+                v-for="(url, index) in photoUrl" :key="index"
+                      v-bind:img-src="url.url"
+                      img-alt="Image"
+                      img-top
+                      tag="article"
+                      style="max-width: 12rem;"
+                      class="mb-2">
+                  <b-button
+                  v-on:click = "ondeleteImg(url)"
+                  variant="primary"><i class="fa fa-trash"></i></b-button>
+                </b-card>
+              </b-card-group>
             </b-col>
           </b-row>
           <b-row>
@@ -340,6 +360,7 @@
     data: () => {
       return {
         items: [],
+        photoUrl: [],
         allProducts: [],
         deleteModal: false,
         isviewModal: false,
@@ -419,6 +440,46 @@
       }
     },
     methods: {
+      ondeleteImg (img) {
+        var storageRef = firebase.storage().ref()
+        var desertRef = storageRef.child(img.path)
+        desertRef.delete().then(() => {
+          var tmp = []
+          for (const key in this.photoUrl) {
+            if (this.photoUrl.hasOwnProperty(key)) {
+              if (this.photoUrl[key].path === img.path) {
+                continue
+              }
+            }
+            tmp.push(this.photoUrl[key])
+          }
+          this.photoUrl = tmp
+        }).catch((error) => {
+          console.log(error)
+        })
+      },
+      onInsertFile () {
+        var _this = this
+        if (this.editForm.barcode === '') {
+          this.$msg('Please insert barcode!')
+          return
+        }
+        var isFile = false
+        try {
+          isFile = this.editForm.photo.name
+        } catch (error) {
+          console.log(error)
+        }
+        var imagepath = 'images/' + this.editForm.barcode + '/' + this.editForm.photo.name
+        var storageRef = firebase.storage().ref()
+        var mountainsRef = storageRef.child(imagepath)
+        if (isFile) {
+          mountainsRef.put(this.editForm.photo).then(function (snapshot) {
+            _this.photoUrl.push({url: snapshot.downloadURL, path: snapshot.metadata.fullPath})
+          })
+        }
+        this.isSubmit = false
+      },
       onGoToPage () {
         this.currentPage = parseInt(this.gotoPage)
       },
@@ -437,12 +498,14 @@
         updates['/products/' + this.delete_uid] = null
         firebase.database().ref().update(updates)
         this.isdeleteModal = false
+
         for (const key in this.allProducts) {
           if (this.allProducts[key]._uid === this.delete_uid) {
             this.allProducts.splice(key, 1)
           }
         }
         this.items = this.allProducts
+        this.$store.dispatch('deleteProduct', this.delete_uid)
       },
       editSubmit () {
         var updates = {}
@@ -450,12 +513,13 @@
           this.price_data = []
         }
         this.editForm.product_price = this.price_data
+        this.editForm.photo = this.photoUrl
         updates['/products/' + this.editForm._uid] = this.editForm
         firebase.database().ref().update(updates)
         this.iseditmodal = false
         var user = {}
         var tmpProduct = []
-        console.log('that is _uid', this.editForm._uid)
+        this.editForm.photo = this.photoUrl
         this.$store.dispatch('pushProduct', this.editForm)
         for (const key in this.items) {
           if (this.items[key]._uid === this.editForm._uid) {
@@ -475,6 +539,7 @@
         this.allProducts = tmpProduct
         this.items = tmpProduct
         this.isSubmit = true
+        this.photoUrl = []
         this.$msg('Edit Comapny Successfuly!')
       },
       addWishList () {
@@ -533,6 +598,7 @@
       onAddlist (_uid) {
         this.product_uid = _uid
         firebase.database().ref('/products/' + _uid).once('value').then((snapshot) => {
+          console.log(snapshot.val())
           this.editForm = snapshot.val()
           this.editForm._uid = _uid
           this.price_data = snapshot.val().product_price
@@ -546,12 +612,45 @@
         this.getstore()
         this.getunit()
         this.getpackage()
-        this.allProducts = this.checkDuplication(this.allProducts)
+        this.photoUrl = []
         firebase.database().ref('/products/' + uid).once('value').then((snapshot) => {
           this.editForm = snapshot.val()
           this.editForm._uid = uid
-          console.log(this.editForm._uid)
+          if (snapshot.val().hasOwnProperty('company')) {
+            for (const key in this.company) {
+              if (snapshot.val().company._uid === this.company[key].value._uid) {
+                this.editForm.company = this.company[key].value
+              }
+            }
+          }
+          if (snapshot.val().hasOwnProperty('product_category')) {
+            for (const key in this.category) {
+              if (snapshot.val().product_category._uid === this.category[key].value._uid) {
+                this.editForm.product_category = this.category[key].value
+              }
+            }
+          }
+          if (snapshot.val().hasOwnProperty('product_package')) {
+            for (const key in this.package) {
+              if (snapshot.val().product_package._uid === this.package[key].value._uid) {
+                this.editForm.product_package = this.package[key].value
+              }
+            }
+          }
+          if (snapshot.val().hasOwnProperty('product_unit')) {
+            for (const key in this.unit) {
+              if (snapshot.val().product_unit._uid === this.unit[key].value._uid) {
+                this.editForm.product_unit = this.unit[key].value
+              }
+            }
+          }
+          console.log(snapshot.val().photo)
+          if (Array.isArray(snapshot.val().photo)) {
+            this.photoUrl = snapshot.val().photo
+          }
           this.price_data = snapshot.val().product_price
+          console.log('that is editform', this.editForm)
+          console.log('this is database data', snapshot.val())
           this.iseditmodal = true
         })
       },
@@ -607,6 +706,7 @@
         })
       },
       addPriceModel () {
+        this.isSubmit = false
         this.isAddPriceModal = true
       },
       onDeleteOPenModal (uid) {
@@ -628,8 +728,6 @@
         })
       },
       addPriceSubmit () {
-        console.log('this is price_data', this.price_data)
-        console.log('this is added price data', this.price)
         if (!this.price_data || typeof this.price_data === 'undefined') {
           this.price_data = []
         }
@@ -824,6 +922,11 @@
 .add_button {
 		margin-bottom: 15px;
 }
-
+.img-card-photo {
+    height: 80px;
+}
+.card-img-top {
+  height: 150px;
+}
 </style>
 

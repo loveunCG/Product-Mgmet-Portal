@@ -6,6 +6,7 @@ export default {
   state: {
     user: null,
     product: [],
+    user_role: ['adduser', 'usertable', 'product_table', 'add_product', 'city', 'company', 'package', 'unit', 'store', 'compare', 'wishlist'],
     latestUid: ' ',
     test: {}
   },
@@ -14,6 +15,11 @@ export default {
       state.user = payload
       localStorage.setItem('user_token', payload)
       console.log(state.user)
+    },
+    rmProduct (state, payload) {
+      if (state.product.hasOwnProperty(payload)) {
+        delete state.product[payload]
+      }
     },
     setLastestUid (state, payload) {
       state.latestUid = payload
@@ -31,6 +37,7 @@ export default {
     clearUser (state) {
       state.user = null
       localStorage.removeItem('user_token')
+      localStorage.removeItem('user_role')
     }
   },
   actions: {
@@ -49,6 +56,9 @@ export default {
         console.log(err)
         return []
       })
+    },
+    deleteProduct ({commit}, payload) {
+      commit('rmProduct', payload)
     },
     pushProduct ({commit}, payload) {
       commit('pushProduct', payload)
@@ -91,7 +101,9 @@ export default {
               photoUrl: user.photoURL
             }
             commit('setUser', newUser)
+            localStorage.setItem('user_role', JSON.stringify(['adduser', 'changeuser', 'edituser', 'deleteuser', 'usertable', 'product_table', 'add_product', 'city', 'company', 'package', 'unit', 'store', 'compare', 'wishlist']))
             router.push('/dashboard')
+            location.reload()
           }
         )
         .catch(
@@ -113,8 +125,15 @@ export default {
                   status: authUser.usr_status,
                   photoUrl: authUser.usr_role
                 }
+                if (authUser.usr_status) {
+                  var err = { message: 'This account is in active!' }
+                  commit('setError', err)
+                  return
+                }
+                localStorage.setItem('user_role', JSON.stringify(authUser.usr_role))
                 commit('setUser', newUser)
                 router.push('/dashboard')
+                location.reload()
               } else {
                 commit('setLoading', true)
                 commit('setError', error)

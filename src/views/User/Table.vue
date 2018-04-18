@@ -3,18 +3,16 @@
     <div slot="header">
        User Table
     </div>
-    <router-link to="/user/addUser"><b-button variant="primary" class="add_button float-right" v-on:click="this.$router.push('/user/addUser')">Add</b-button></router-link>
+    <router-link to="/user/addUser"><b-button variant="primary" class="add_button float-right" v-show = "checkButton('adduser')" v-on:click="this.$router.push('/user/addUser')"><i class="fa fa-plus"></i></b-button></router-link>
     <b-table :hover="hover" :striped="striped" :bordered="bordered" :small="small" :busy.sync="isBusy"  responsive="sm" :items="items" :fields="fields" :current-page="currentPage" :per-page="perPage">
-      <template slot="role" slot-scope="data">
-        <b-badge>{{getRole(data.item.role)}}</b-badge>
-      </template>
+
       <template slot="status" slot-scope="data">
         <b-badge variant="success">{{data.item.status}}</b-badge>
       </template>
       <template slot="action" slot-scope="data">
-        <b-button variant="success" v-on:click="onEditModel(data.item.action)"><i class="fa fa-edit"></i></b-button>
-        <b-button variant="danger" v-on:click="onresetPasswd(data.item.action)"><i class="fa fa-key"></i></b-button>
-        <b-button variant="danger" v-on:click="onDeleteModal(data.item.action)"><i class="fa fa-trash"></i></b-button>
+        <b-button variant="success" v-show = "checkButton('edituser')" v-on:click="onEditModel(data.item.action)"><i class="fa fa-edit"></i></b-button>
+        <b-button variant="danger" v-show = "checkButton('changeuser')" v-on:click="onresetPasswd(data.item.action)"><i class="fa fa-key"></i></b-button>
+        <b-button variant="danger" v-show = "checkButton('deleteuser')" v-on:click="onDeleteModal(data.item.action)"><i class="fa fa-trash"></i></b-button>
       </template>
     </b-table>
     <nav>
@@ -34,7 +32,7 @@
               <b-input-group-prepend>
                 <b-input-group-text><i class="fa fa-envelope"></i></b-input-group-text>
               </b-input-group-prepend>
-              <b-form-input type="email" v-model="editForm.usr_email" placeholder="Email"></b-form-input>
+              <b-form-input type="email" v-model="editForm.usr_email" :disabled = "true" placeholder="Email"></b-form-input>
             </b-input-group>
           </b-form-group>
           <b-form-group label="User status">
@@ -43,8 +41,32 @@
               <b-form-radio value="1">Off</b-form-radio>
             </b-form-radio-group>
           </b-form-group>
-          <b-form-group label="User Role">
-            <b-form-select v-model="editForm.usr_role" :options="role_option" class="mb-3" />
+          <b-form-group
+            label="User Role"
+            label-for="basicInlineCheckboxes"
+            :label-cols="3"
+            :horizontal="true">
+            <b-form-checkbox-group id="basicInlineCheckboxes"
+            v-model="editForm.usr_role"
+            :plain="true"
+              v-on:change="onChangeSelect"
+            :checked="editForm.usr_role">
+              <b-form-checkbox :plain="true" value="adduser">Add User</b-form-checkbox>
+              <b-form-checkbox :plain="true" value="edituser">Edit User</b-form-checkbox>
+              <b-form-checkbox :plain="true" value="deleteuser">Remove User</b-form-checkbox>
+              <b-form-checkbox :plain="true" value="changeuser">Reset Password</b-form-checkbox>
+              <b-form-checkbox :plain="true" value="usertable">User Table</b-form-checkbox>
+              <b-form-checkbox :plain="true" value="product_table">Product Table</b-form-checkbox>
+              <b-form-checkbox :plain="true" value="add_product">Add Product</b-form-checkbox>
+              <b-form-checkbox :plain="true" value="city">City</b-form-checkbox>
+              <b-form-checkbox :plain="true" value="company">Company</b-form-checkbox>
+              <b-form-checkbox :plain="true" value="package">Package</b-form-checkbox>
+              <b-form-checkbox :plain="true" value="category">Category</b-form-checkbox>
+              <b-form-checkbox :plain="true" value="unit">Unit</b-form-checkbox>
+              <b-form-checkbox :plain="true" value="store">Store</b-form-checkbox>
+              <b-form-checkbox :plain="true" value="compare">Compare</b-form-checkbox>
+              <b-form-checkbox :plain="true" value="wishlist">Wish List</b-form-checkbox>
+            </b-form-checkbox-group>
           </b-form-group>
     </b-modal>
     <b-modal title="INFO" class="modal-info" v-model="deleteModal" @ok="deleteSubmit" ok-variant="info">
@@ -109,7 +131,7 @@
         editForm: {
           usr_name: '',
           usr_email: '',
-          usr_role: '',
+          usr_role: [],
           usr_status: '',
           _uid: '',
           created_at: '',
@@ -131,13 +153,11 @@
           {key: 'username'},
           {key: 'email'},
           {key: 'registered'},
-          {key: 'role'},
           {key: 'status'},
           {key: 'action'}
         ],
         currentPage: 1,
-        perPage: 5,
-        totalRows: 0
+        perPage: 20
       }
     },
     methods: {
@@ -152,6 +172,20 @@
         } else {
           return 'Low'
         }
+      },
+      onChangeSelect () {
+        console.log(this.editForm.usr_role)
+      },
+      checkButton (param) {
+        var userRole = JSON.parse(localStorage.getItem('user_role'))
+        var isHide = false
+        for (const key in userRole) {
+          if (userRole[key] === param) {
+            isHide = true
+          }
+        }
+        console.log(param, 'is', isHide)
+        return isHide
       },
       resetPasswdSubmit () {
         if (this.resetPasswd.password === this.resetPasswd.rpassword && this.resetPasswd.password !== '') {
@@ -187,6 +221,7 @@
         updates['/users/' + this.editForm._uid] = this.editForm
         firebase.database().ref().update(updates)
         this.iseditmodal = false
+        this.$msg('Update User Successfuly!')
         this.myProvider()
       },
       onEditModel (uid) {
