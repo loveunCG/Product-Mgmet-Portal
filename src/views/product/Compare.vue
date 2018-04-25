@@ -6,6 +6,7 @@
      <b-row>
         <b-col md="3" offset-md="3" class="pull-right add_button">
           <b-form-radio-group id="radios2"
+          v-show="false"
           v-model="searchby"
           v-on:change="onSelectSearchBy"
           name="radioSubComponent">
@@ -71,9 +72,17 @@
     :per-page="perPage"
     >
       <template slot="action" slot-scope="data">
-        <b-button variant="danger" v-on:click="onDeleteOPenModal(data.item.action)"><i class="fa fa-trash"></i></b-button>
+        <b-button variant="danger"  v-show = "checkButton('wish_del')" v-on:click="onDeleteOPenModal(data.item.action)"><i class="fa fa-trash"></i></b-button>
       </template>
     </b-table>
+    <b-col md="10" offset-md="2">
+      <b-list-group >
+       <b-list-group-item href="#">
+         <span v-for="(rprice, index) in currentSum" :key="index">
+           <strong>{{index}}:</strong>&nbsp;&nbsp; {{rprice}}&nbsp;
+         </span></b-list-group-item>
+      </b-list-group>
+    </b-col>
 
     <nav>
       <b-pagination
@@ -84,6 +93,8 @@
       prev-text="Prev"
       next-text="Next" hide-goto-end-buttons/>
     </nav>
+
+
 
     <b-modal title="Info" class="modal-info" v-model="isdeleteModal" @ok="deleteSubmit">
       are you sure delete this Product?
@@ -144,6 +155,7 @@
         iseditmodal: false,
         isBusy: false,
         fields: [],
+        sum_price: {},
         currentPage: 1,
         totalRows: 0,
         wishlistuid: '',
@@ -155,13 +167,26 @@
       }
     },
     methods: {
+      checkButton (param) {
+        var userRole = JSON.parse(localStorage.getItem('user_role'))
+        var isHide = false
+        for (const key in userRole) {
+          if (userRole[key] === param) {
+            isHide = true
+          }
+        }
+        console.log(param, 'is', isHide)
+        return isHide
+      },
       onDeleteOPenModal (uid) {
         this.delete_uid = uid
+        console.log(uid)
         this.isdeleteModal = true
       },
 
       deleteSubmit () {
         var updates = {}
+        console.log(this.delete_uid)
         updates['/products/' + this.delete_uid] = null
         firebase.database().ref().update(updates)
         this.isdeleteModal = false
@@ -173,6 +198,7 @@
         }
         this.items = this.allProducts
         this.$store.dispatch('deleteProduct', this.delete_uid)
+        this.searchByCity()
       },
       getBadge (status) {
         return status === '1' ? 'active'
@@ -186,10 +212,13 @@
           { key: 'product_name', sortable: true },
           { key: 'barcode', sortable: true }
         ]
-        for (const key in this.city) {
-          fields.push({ key: this.city[key].city_name, sortable: true })
+        for (const key in this.store) {
+          fields.push({ key: this.store[key].store_name, sortable: true })
+          this.sum_price[this.store[key].store_name] = 0
         }
-        fields.push({ key: 'city_cheapest_location', sortable: true })
+        fields.push({ key: 'store_cheapest_location', sortable: true })
+        this.sum_price['cheapest_price'] = 0
+
         fields.push({ key: 'action', sortable: true })
         this.fields = fields
         this.searchByCity()
@@ -340,36 +369,42 @@
       },
       loadOnce () {
         let allusers = []
+        console.log(this.sum_price)
         let tmpproduct = this.$store.getters.product
         for (const key in tmpproduct) {
           var user = []
           var cityCheapest = ''
           var storeCheapest = ''
-          let maxPrice = 1000000000
-          let maxPriceStore = 10000000000
+          // let maxPrice = 1000000000
+          let maxPriceStore = 100000000000
           var product = tmpproduct[key]
           user = tmpproduct[key]
           user['product_name'] = tmpproduct[key].product_name
           user['barcode'] = tmpproduct[key].barcode
-          for (const city in this.city) {
-            for (const i in product.product_price) {
-              if (product.product_price.hasOwnProperty(i)) {
-                if (product.product_price[i].city.city_name === this.city[city].city_name) {
-                  if (maxPrice > parseInt(product.product_price[i].price)) {
-                    maxPrice = product.product_price[i].price
-                    cityCheapest = this.city[city].city_name
-                  }
-                  user[this.city[city].city_name] = product.product_price[i].price
-                }
-              }
-            }
-          }
+          user['action'] = key
+          // for (const city in this.city) {
+          //   for (const i in product.product_price) {
+          //     if (product.product_price.hasOwnProperty(i)) {
+          //       if (product.product_price[i].city.city_name === this.city[city].city_name) {
+          //         if (maxPrice > parseInt(product.product_price[i].price)) {
+          //           maxPrice = isNaN(product.product_price[i].price) ? 0 : parseInt(product.product_price[i].price)
+          //           cityCheapest = this.city[city].city_name
+          //         }
+          //         user[this.city[city].city_name] = product.product_price[i].price
+          //         if (isNaN(sum[this.city[city].city_name])) {
+          //           sum[this.city[city].city_name] = 0
+          //         }
+          //         sum[this.city[city].city_name] += isNaN(product.product_price[i].price) ? 0 : parseInt(product.product_price[i].price)
+          //       }
+          //     }
+          //   }
+          // }
           for (const store in this.store) {
             for (const i in product.product_price) {
               if (product.product_price.hasOwnProperty(i)) {
                 if (product.product_price[i].store.store_name === this.store[store].store_name) {
                   if (maxPriceStore > parseInt(product.product_price[i].price)) {
-                    maxPriceStore = product.product_price[i].price
+                    maxPriceStore = isNaN(product.product_price[i].price) ? 0 : parseInt(product.product_price[i].price)
                     storeCheapest = this.store[store].store_name
                   }
                   user[this.store[store].store_name] = product.product_price[i].price
@@ -378,12 +413,11 @@
             }
           }
           user['city_cheapest_location'] = cityCheapest
+          user['cheapest_price'] = maxPriceStore === 100000000000 ? 0 : maxPriceStore
           user['store_cheapest_location'] = storeCheapest
-          user['action'] = key
           allusers.push(user)
         }
         this.allProducts = allusers
-        this.items = this.allProducts
       },
       checkDuplication (param) {
         console.log('------------', param.length)
@@ -404,6 +438,21 @@
         }
         return param
       },
+      getSumPrice (object) {
+        var sum = {}
+        for (const key in this.store) {
+          sum[this.store[key].store_name] = 0
+        }
+        sum['cheapest_price'] = 0
+        for (const key in object) {
+          for (const index in object[key]) {
+            if (sum.hasOwnProperty(index)) {
+              sum[index] += isNaN(object[key][index]) ? 0 : parseInt(object[key][index])
+            }
+          }
+        }
+        return sum
+      },
       loadData () {
         setTimeout(this.loadOnce, 1000)
       }
@@ -422,6 +471,9 @@
       },
       currentItems: function () {
         return this.items
+      },
+      currentSum: function () {
+        return this.getSumPrice(this.items)
       }
     }
   }

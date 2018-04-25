@@ -3,7 +3,7 @@
   <b-card>
 
     <div slot="header">
-      <strong>Product </strong> <small></small>
+      <strong>Product </strong>
     </div>
     <b-row>
       <b-col sm="3">
@@ -50,7 +50,7 @@
   </b-card>
   <b-card>
     <div slot="header">
-       Company Table
+       Product Table
     </div>
     <b-col md="3" class="pull-right add_button">
         <b-form-group horizontal class="mb-0">
@@ -63,7 +63,7 @@
         </b-form-group>
     </b-col>
 
-    <b-button variant="primary" class="add_button float-right" v-on:click="onAddModal"><i class="fa fa-plus"></i>&nbsp;Add</b-button>
+    <b-button variant="primary" class="add_button float-right" v-show = "checkButton('add_product')" v-on:click="onAddModal"><i class="fa fa-plus"></i>&nbsp;Add</b-button>
     <b-row>
       <b-col md="3"  offset-md="6">
         <b-form-group>
@@ -97,9 +97,9 @@
         <b-badge :variant="getBadge(data.item.status)">{{data.item.status}}</b-badge>
       </template>
       <template slot="action" slot-scope="data">
-        <b-button variant="success" v-on:click="onEditModel(data.item.action)"><i class="fa fa-edit"></i></b-button>
-        <b-button variant="danger" v-on:click="onDeleteOPenModal(data.item.action)"><i class="fa fa-trash"></i></b-button>
-        <b-button variant="danger" v-on:click="onAddlist(data.item.action)"><i class="fa fa-plus"></i></b-button>
+        <b-button variant="success" v-show = "checkButton('pro_edit')" v-on:click="onEditModel(data.item.action)"><i class="fa fa-edit"></i></b-button>
+        <b-button variant="danger"  v-show = "checkButton('pro_del')" v-on:click="onDeleteOPenModal(data.item.action)"><i class="fa fa-trash"></i></b-button>
+        <b-button variant="danger" v-show = "checkButton('pro_addwish')" v-on:click="onAddlist(data.item.action)"><i class="fa fa-plus"></i></b-button>
       </template>
       <template slot="product_price" slot-scope="data">
         <b-button variant="success" class="md-12" v-on:click="onViewModel(data.item.action)"><i class="fa fa-eye"></i>&nbsp;view</b-button>
@@ -457,6 +457,17 @@
         }).catch((error) => {
           console.log(error)
         })
+      },
+      checkButton (param) {
+        var userRole = JSON.parse(localStorage.getItem('user_role'))
+        var isHide = false
+        for (const key in userRole) {
+          if (userRole[key] === param) {
+            isHide = true
+          }
+        }
+        console.log(param, 'is', isHide)
+        return isHide
       },
       onInsertFile () {
         var _this = this

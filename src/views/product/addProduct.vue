@@ -100,12 +100,12 @@
                 <b-card
                 title=""
                 v-for="(url, index) in photoUrl" :key="index"
-                      v-bind:img-src="url.url"
-                      img-alt="Image"
-                      img-top
-                      tag="article"
-                      style="max-width: 20rem;"
-                      class="mb-2 img-card-photo">
+                v-bind:img-src="url.url"
+                img-alt="Image"
+                img-top
+                tag="article"
+                style="max-width: 18rem;"
+                class="mb-3">
                   <b-button
                   v-on:click = "ondeleteImg(url)"
                   variant="primary"><i class="fa fa-trash"></i></b-button>
@@ -140,7 +140,6 @@
           </div>
         </b-card>
       </b-col>
-
       <b-modal title="Add Price" class="modal-success" v-model="isAddPriceModal" @ok="addPriceSubmit" ok-variant="success">
            <b-row>
             <b-col sm="4">

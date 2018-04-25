@@ -72,7 +72,7 @@
                   ]"
               size="md" />
             </b-col>
-            <b-col sm="8">
+            <b-col sm="12">
               <b-form-group
                 label="User Role"
                 label-for="basicInlineCheckboxes"
@@ -80,7 +80,6 @@
                 :horizontal="true">
                 <b-form-checkbox-group id="basicInlineCheckboxes"
                 v-model="addForm.usr_role"
-                :plain="true"
                  v-on:change="onChangeSelect"
                 :checked="addForm.usr_role">
                   <b-form-checkbox :plain="true" value="adduser">Add User</b-form-checkbox>
@@ -90,14 +89,36 @@
                   <b-form-checkbox :plain="true" value="usertable">User Table</b-form-checkbox>
                   <b-form-checkbox :plain="true" value="product_table">Product Table</b-form-checkbox>
                   <b-form-checkbox :plain="true" value="add_product">Add Product</b-form-checkbox>
-                  <b-form-checkbox :plain="true" value="city">City</b-form-checkbox>
-                  <b-form-checkbox :plain="true" value="company">Company</b-form-checkbox>
-                  <b-form-checkbox :plain="true" value="package">Package</b-form-checkbox>
-                  <b-form-checkbox :plain="true" value="category">Category</b-form-checkbox>
-                  <b-form-checkbox :plain="true" value="unit">Unit</b-form-checkbox>
-                  <b-form-checkbox :plain="true" value="store">Store</b-form-checkbox>
-                  <b-form-checkbox :plain="true" value="compare">Compare</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="pro_del">Product Delete</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="pro_edit">Product Edit</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="wish_del">Product Add Wish</b-form-checkbox>
                   <b-form-checkbox :plain="true" value="wishlist">Wish List</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="compare">Compare</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="pro_addwish">Product Add Wish</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="city">City</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="city_del">City Delete</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="city_edit">City Edit</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="city_add">City Add</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="company">Company</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="company_add">Company Add</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="company_edit">Company Edit</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="company_del">Company Delete</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="package">Package</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="package_add">Package Add</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="package_edit">Package Edit</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="package_del">Package Delete</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="category">Category</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="category_del">Category Delete</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="category_edit">Category Edit</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="category_add">Category Add</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="unit">Unit</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="unit_add">Unit Add</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="unit_edit">Unit Edit</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="unit_del">Unit Delete</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="store">Store</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="store_add">Store Add</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="store_edit">Store Edit</b-form-checkbox>
+                  <b-form-checkbox :plain="true" value="store_del">Store Delete</b-form-checkbox>
                 </b-form-checkbox-group>
               </b-form-group>
             </b-col>

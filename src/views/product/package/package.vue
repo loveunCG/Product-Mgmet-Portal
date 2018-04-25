@@ -3,11 +3,11 @@
     <div slot="header">
        Package List
     </div>
-    <b-button variant="primary" class="add_button float-right" v-on:click="onAddModal"><i class="fa fa-plus"></i>Add</b-button>
+    <b-button variant="primary" class="add_button float-right"  v-show = "checkButton('package_add')" v-on:click="onAddModal"><i class="fa fa-plus"></i>Add</b-button>
     <b-table :hover="hover" :striped="striped" :bordered="bordered" :small="small" :busy.sync="isBusy"  responsive="sm" :items="items" :fields="fields" :current-page="currentPage" :per-page="perPage">
       <template slot="action" slot-scope="data">
-        <b-button variant="primary" v-on:click="onEditModel(data.item.action)"><i class="fa fa-edit"></i></b-button>
-        <b-button variant="danger" v-on:click="onDeleteModal(data.item.action)"><i class="fa fa-trash"></i></b-button>
+        <b-button variant="primary"  v-show = "checkButton('package_edit')" v-on:click="onEditModel(data.item.action)"><i class="fa fa-edit"></i></b-button>
+        <b-button variant="danger"  v-show = "checkButton('package_del')" v-on:click="onDeleteModal(data.item.action)"><i class="fa fa-trash"></i></b-button>
       </template>
     </b-table>
     <nav>
@@ -150,6 +150,17 @@
         this.iseditmodal = false
         this.myProvider()
         this.$msg('Edit packages Successfuly!')
+      },
+      checkButton (param) {
+        var userRole = JSON.parse(localStorage.getItem('user_role'))
+        var isHide = false
+        for (const key in userRole) {
+          if (userRole[key] === param) {
+            isHide = true
+          }
+        }
+        console.log(param, 'is', isHide)
+        return isHide
       },
       addSubmit () {
         let isValidation = true

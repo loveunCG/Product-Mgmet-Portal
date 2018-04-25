@@ -125,7 +125,8 @@ export default {
                   status: authUser.usr_status,
                   photoUrl: authUser.usr_role
                 }
-                if (authUser.usr_status) {
+                console.log(authUser.usr_status)
+                if (authUser.usr_status === 1) {
                   var err = { message: 'This account is in active!' }
                   commit('setError', err)
                   return
