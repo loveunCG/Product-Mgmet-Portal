@@ -3,6 +3,7 @@
 
 UI is COREUI . this is link https://github.com/coreui/coreui-free-bootstrap-admin-template
 
+Vuex, Bootstrap-vue, third party auth
 
 ## Build Setup
 
