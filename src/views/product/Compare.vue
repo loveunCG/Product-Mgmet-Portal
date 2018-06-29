@@ -93,9 +93,6 @@
       prev-text="Prev"
       next-text="Next" hide-goto-end-buttons/>
     </nav>
-
-
-
     <b-modal title="Info" class="modal-info" v-model="isdeleteModal" @ok="deleteSubmit">
       are you sure delete this Product?
     </b-modal>

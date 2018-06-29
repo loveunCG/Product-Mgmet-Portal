@@ -1,4 +1,9 @@
 
+# Product Management for wishlist and mobile App(back-end) with firebase and VUE
+
+UI is COREUI . this is link https://github.com/coreui/coreui-free-bootstrap-admin-template
+
+
 ## Build Setup
 
 ``` bash
@@ -22,4 +27,9 @@ npm run e2e
 
 # run all tests
 npm test
+
+deploy
+
+firebase deploy
+
 ```
