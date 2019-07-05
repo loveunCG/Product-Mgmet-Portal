@@ -5,6 +5,12 @@ UI is COREUI . this is link https://github.com/coreui/coreui-free-bootstrap-admi
 
 Vuex, Bootstrap-vue, third party auth
 
+# Feature
+1. auth with google account and local account on firebase 
+2. product management with washlist etc..
+
+
+
 ## Build Setup
 
 ``` bash
