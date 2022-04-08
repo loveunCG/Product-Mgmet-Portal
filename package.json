@@ -24,7 +24,7 @@
     "flag-icon-css": "2.9.0",
     "font-awesome": "^4.7.0",
     "js-md5": "^0.7.3",
-    "moment": "^2.22.0",
+    "moment": "^2.29.2",
     "simple-line-icons": "^2.4.1",
     "vue": "^2.5.16",
     "vue-chartjs": "3.1.0",
